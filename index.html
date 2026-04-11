@@ -1,6 +1,5 @@
 <body>
-
-  <header class="hero-header">
+  <div class="menu-wrapper">
     <button class="menu-button" onclick="toggleMenu()">☰</button>
 
     <div id="dropdownMenu" class="dropdown-menu">
@@ -9,12 +8,12 @@
       <a href="profile.html">My Profile</a>
       <a href="login.html">Log In</a>
       <a href="signup.html">Sign Up</a>
-      <a href="apple-signin.html">Sign in with Apple</a>
-      <a href="google-signin.html">Sign in with Google</a>
       <a href="about.html">About</a>
       <a href="contact.html">Contact</a>
+      <a href="privacy.html">Privacy Policy</a>
+      <a href="terms.html">Terms of Use</a>
     </div>
-  </header>
+  </div>
 
   <img src="homepage.jpg" alt="Psephia homepage" class="home-image">
 
@@ -45,31 +44,29 @@
 
       <p>
         We want to keep debate on Psephia civil, respectful, and lawful. RobTechUK may remove posts
-        or comments that incite violence, promote hatred, harass other users, encourage illegal
-        activity, or otherwise violate UK law.
+        or comments that incite violence, promote hatred, harass other users, encourage illegal activity,
+        or otherwise violate UK law.
       </p>
 
       <p>
-        Repeated breaches of these rules may result in content removal or restricted access to the
-        site. For further information, please see our Community Guidelines.
+        Repeated breaches of these rules may result in content removal or restricted access to the site.
+        For further information, please see our Community Guidelines.
       </p>
     </div>
   </section>
 
   <script>
     function toggleMenu() {
-      const menu = document.getElementById("dropdownMenu");
-      menu.classList.toggle("show");
+      document.getElementById("dropdownMenu").classList.toggle("show");
     }
 
-    window.addEventListener("click", function(e) {
-      const menu = document.getElementById("dropdownMenu");
-      const button = document.querySelector(".menu-button");
-
-      if (!menu.contains(e.target) && !button.contains(e.target)) {
-        menu.classList.remove("show");
+    window.onclick = function(event) {
+      if (!event.target.matches('.menu-button')) {
+        const dropdown = document.getElementById("dropdownMenu");
+        if (dropdown.classList.contains("show")) {
+          dropdown.classList.remove("show");
+        }
       }
-    });
+    }
   </script>
-
 </body>
