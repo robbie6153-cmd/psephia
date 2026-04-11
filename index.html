@@ -1,30 +1,35 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Psephia</title>
-  <link rel="stylesheet" href="style.css">
-</head>
-
 <body>
 
-  <!-- Homepage image (keep this exactly as it is) -->
+  <header class="hero-header">
+    <button class="menu-button" onclick="toggleMenu()">☰</button>
+
+    <div id="dropdownMenu" class="dropdown-menu">
+      <a href="index.html">Home</a>
+      <a href="community-guidelines.html">Community Guidelines</a>
+      <a href="profile.html">My Profile</a>
+      <a href="login.html">Log In</a>
+      <a href="signup.html">Sign Up</a>
+      <a href="apple-signin.html">Sign in with Apple</a>
+      <a href="google-signin.html">Sign in with Google</a>
+      <a href="about.html">About</a>
+      <a href="contact.html">Contact</a>
+    </div>
+  </header>
+
   <img src="homepage.jpg" alt="Psephia homepage" class="home-image">
 
-  <!-- New scroll-down intro section -->
   <section class="intro-section">
     <div class="intro-container">
       <h2>About Psephia</h2>
 
       <p>
-        Psephia is a new social media website by RobTech, inspired by the Ancient Greek word
+        Psephia is a new social media website by RobTechUK, inspired by the Ancient Greek word
         <em>psephia</em>, meaning pebble, which was once used by people to vote.
       </p>
 
       <p>
-        The site allows users to submit questions for other users to vote on, or to vote on
-        topics submitted by others.
+        The site allows users to submit questions for other users to vote on, or to vote on topics
+        submitted by others.
       </p>
 
       <p>
@@ -40,16 +45,31 @@
 
       <p>
         We want to keep debate on Psephia civil, respectful, and lawful. RobTechUK may remove posts
-        or comments that incite violence, promote hatred, harass other users, encourage illegal activity,
-        or otherwise violate UK law.
+        or comments that incite violence, promote hatred, harass other users, encourage illegal
+        activity, or otherwise violate UK law.
       </p>
 
       <p>
-        Repeated breaches of these rules may result in content removal or restricted access to the site.
-        For further information, please see our Community Guidelines.
+        Repeated breaches of these rules may result in content removal or restricted access to the
+        site. For further information, please see our Community Guidelines.
       </p>
     </div>
   </section>
 
+  <script>
+    function toggleMenu() {
+      const menu = document.getElementById("dropdownMenu");
+      menu.classList.toggle("show");
+    }
+
+    window.addEventListener("click", function(e) {
+      const menu = document.getElementById("dropdownMenu");
+      const button = document.querySelector(".menu-button");
+
+      if (!menu.contains(e.target) && !button.contains(e.target)) {
+        menu.classList.remove("show");
+      }
+    });
+  </script>
+
 </body>
-</html>

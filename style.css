@@ -4,8 +4,59 @@ html, body {
   width: 100%;
   overflow-x: hidden;
   font-family: Georgia, serif;
-  background: #ffffff;
+  background: #f3f3f3;
   color: #111;
+}
+
+.hero-header {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+}
+
+.menu-button {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid #ccc;
+  font-size: 2rem;
+  line-height: 1;
+  padding: 8px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.dropdown-menu {
+  display: none;
+  position: absolute;
+  top: 60px;
+  right: 0;
+  min-width: 220px;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+  overflow: hidden;
+}
+
+.dropdown-menu a {
+  display: block;
+  padding: 14px 18px;
+  text-decoration: none;
+  color: #111;
+  font-size: 1rem;
+  border-bottom: 1px solid #eee;
+}
+
+.dropdown-menu a:last-child {
+  border-bottom: none;
+}
+
+.dropdown-menu a:hover {
+  background: #f5f5f5;
+}
+
+.dropdown-menu.show {
+  display: block;
 }
 
 .home-image {
@@ -16,7 +67,7 @@ html, body {
 
 .intro-section {
   width: 100%;
-  background: #ffffff;
+  background: #f3f3f3;
   padding: 50px 20px;
   box-sizing: border-box;
 }
@@ -45,6 +96,20 @@ html, body {
 }
 
 @media (max-width: 768px) {
+  .hero-header {
+    top: 14px;
+    right: 14px;
+  }
+
+  .menu-button {
+    font-size: 1.8rem;
+    padding: 6px 12px;
+  }
+
+  .dropdown-menu {
+    min-width: 200px;
+  }
+
   .intro-section {
     padding: 35px 20px;
   }
