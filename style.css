@@ -29,7 +29,7 @@ body {
 }
 
 .dropdown-menu {
-  display: none;
+  display: none !important;
   position: absolute;
   top: 55px;
   right: 0;
@@ -42,7 +42,7 @@ body {
 }
 
 .dropdown-menu.show {
-  display: block;
+  display: block !important;
 }
 
 .dropdown-menu a {
