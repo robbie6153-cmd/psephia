@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Psephia</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Psephia App</title>
+
   <style>
     body {
       font-family: Georgia, serif;
@@ -11,361 +12,133 @@
       margin: 0 auto;
       padding: 20px;
       background: #f7f7f7;
-      color: #111;
-    }
-
-    h1, h2 {
-      margin-bottom: 10px;
     }
 
     .card {
       background: white;
-      border: 1px solid #ddd;
       padding: 16px;
       margin-bottom: 16px;
       border-radius: 10px;
+      border: 1px solid #ddd;
     }
 
     input, button {
-      font-size: 16px;
       padding: 10px;
       margin: 6px 0;
+      font-size: 16px;
     }
 
     input {
       width: 100%;
       max-width: 400px;
-      box-sizing: border-box;
     }
 
-    button {
-      cursor: pointer;
-      margin-right: 8px;
-    }
-
-    .poll-card {
+    .poll {
       border: 1px solid #ccc;
-      padding: 14px;
-      margin-bottom: 12px;
+      padding: 10px;
+      margin-bottom: 10px;
       border-radius: 8px;
-      background: #fff;
-    }
-
-    .option-btn {
-      display: inline-block;
-      margin: 6px 8px 0 0;
-    }
-
-    .small-text {
-      font-size: 14px;
-      color: #555;
-    }
-
-    #authStatus {
-      font-weight: bold;
-      margin-top: 8px;
-    }
-
-    #logoutBtn {
-      display: none;
-    }
-
-    #createPollSection {
-      display: none;
     }
   </style>
 </head>
+
 <body>
-  <h1>Psephia</h1>
 
-  <div class="card">
-    <h2>Login / Sign Up</h2>
+<h1>Psephia</h1>
 
-    <input id="email" type="email" placeholder="Email">
-    <br>
-    <input id="password" type="password" placeholder="Password">
-    <br>
+<div class="card">
+  <h2>Login</h2>
+  <input id="email" placeholder="Email">
+  <input id="password" type="password" placeholder="Password">
+  <br>
+  <button id="signup">Sign Up</button>
+  <button id="login">Log In</button>
+  <button id="logout">Log Out</button>
+  <p id="status">Not logged in</p>
+</div>
 
-    <button id="signupBtn">Sign Up</button>
-    <button id="loginBtn">Log In</button>
-    <button id="googleBtn">Sign in with Google</button>
-    <button id="logoutBtn">Log Out</button>
+<div id="createPoll" class="card" style="display:none;">
+  <h2>Create Poll</h2>
+  <input id="question" placeholder="Question">
+  <input id="option1" placeholder="Option 1">
+  <input id="option2" placeholder="Option 2">
+  <button id="create">Create</button>
+</div>
 
-    <div id="authStatus" class="small-text">Not logged in</div>
-  </div>
+<div class="card">
+  <h2>Polls</h2>
+  <div id="polls"></div>
+</div>
 
-  <div id="createPollSection" class="card">
-    <h2>Create Poll</h2>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
+import {
+  getAuth, onAuthStateChanged,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut
+} from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
 
-    <input id="question" placeholder="Enter question">
-    <br>
-    <input id="option1" placeholder="Option 1">
-    <br>
-    <input id="option2" placeholder="Option 2">
-    <br>
+import {
+  getFirestore, collection, addDoc, getDocs, Timestamp
+} from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 
-    <button id="createPollBtn">Create Poll</button>
-    <div id="createPollMessage" class="small-text"></div>
-  </div>
+const firebaseConfig = {
+  apiKey: "AIzaSyB26YRL03IuiYtFFc3_aweQ8EDe8_DWUd0",
+  authDomain: "psephia-9807e.firebaseapp.com",
+  projectId: "psephia-9807e",
+  storageBucket: "psephia-9807e.firebasestorage.app",
+  messagingSenderId: "1085776731080",
+  appId: "1:1085776731080:web:ef9dade729d7f043b7befd"
+};
 
-  <div class="card">
-    <h2>All Polls</h2>
-    <div id="pollList">Loading polls...</div>
-  </div>
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
-    import {
-      getAuth,
-      onAuthStateChanged,
-      createUserWithEmailAndPassword,
-      signInWithEmailAndPassword,
-      signInWithPopup,
-      GoogleAuthProvider,
-      signOut
-    } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
+// auth
+signup.onclick = () =>
+  createUserWithEmailAndPassword(auth, email.value, password.value);
 
-    import {
-      getFirestore,
-      collection,
-      addDoc,
-      getDocs,
-      query,
-      where,
-      orderBy,
-      Timestamp
-    } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+login.onclick = () =>
+  signInWithEmailAndPassword(auth, email.value, password.value);
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyB26YRL03IuiYtFFc3_aweQ8EDe8_DWUd0",
-      authDomain: "psephia-9807e.firebaseapp.com",
-      projectId: "psephia-9807e",
-      storageBucket: "psephia-9807e.firebasestorage.app",
-      messagingSenderId: "1085776731080",
-      appId: "1:1085776731080:web:ef9dade729d7f043b7befd"
-    };
+logout.onclick = () => signOut(auth);
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-    const provider = new GoogleAuthProvider();
+onAuthStateChanged(auth, user => {
+  status.textContent = user ? "Logged in: " + user.email : "Not logged in";
+  createPoll.style.display = user ? "block" : "none";
+  loadPolls();
+});
 
-    const emailInput = document.getElementById("email");
-    const passwordInput = document.getElementById("password");
-    const signupBtn = document.getElementById("signupBtn");
-    const loginBtn = document.getElementById("loginBtn");
-    const googleBtn = document.getElementById("googleBtn");
-    const logoutBtn = document.getElementById("logoutBtn");
-    const authStatus = document.getElementById("authStatus");
+// create poll
+create.onclick = async () => {
+  await addDoc(collection(db, "polls"), {
+    question: question.value,
+    options: [option1.value, option2.value],
+    createdAt: Timestamp.now()
+  });
 
-    const createPollSection = document.getElementById("createPollSection");
-    const questionInput = document.getElementById("question");
-    const option1Input = document.getElementById("option1");
-    const option2Input = document.getElementById("option2");
-    const createPollBtn = document.getElementById("createPollBtn");
-    const createPollMessage = document.getElementById("createPollMessage");
-    const pollList = document.getElementById("pollList");
+  loadPolls();
+};
 
-    function escapeHtml(text) {
-      const div = document.createElement("div");
-      div.textContent = text;
-      return div.innerHTML;
-    }
+// load polls
+async function loadPolls() {
+  const snap = await getDocs(collection(db, "polls"));
+  polls.innerHTML = "";
 
-    signupBtn.addEventListener("click", async () => {
-      const email = emailInput.value.trim();
-      const password = passwordInput.value.trim();
+  snap.forEach(doc => {
+    const p = doc.data();
+    polls.innerHTML += `
+      <div class="poll">
+        <strong>${p.question}</strong><br>
+        ${p.options[0]}<br>
+        ${p.options[1]}
+      </div>
+    `;
+  });
+}
+</script>
 
-      if (!email || !password) {
-        alert("Enter an email and password.");
-        return;
-      }
-
-      try {
-        await createUserWithEmailAndPassword(auth, email, password);
-      } catch (error) {
-        alert(error.message);
-      }
-    });
-
-    loginBtn.addEventListener("click", async () => {
-      const email = emailInput.value.trim();
-      const password = passwordInput.value.trim();
-
-      if (!email || !password) {
-        alert("Enter an email and password.");
-        return;
-      }
-
-      try {
-        await signInWithEmailAndPassword(auth, email, password);
-      } catch (error) {
-        alert(error.message);
-      }
-    });
-
-    googleBtn.addEventListener("click", async () => {
-      try {
-        await signInWithPopup(auth, provider);
-      } catch (error) {
-        alert(error.message);
-      }
-    });
-
-    logoutBtn.addEventListener("click", async () => {
-      try {
-        await signOut(auth);
-      } catch (error) {
-        alert(error.message);
-      }
-    });
-
-    createPollBtn.addEventListener("click", async () => {
-      const user = auth.currentUser;
-      const question = questionInput.value.trim();
-      const option1 = option1Input.value.trim();
-      const option2 = option2Input.value.trim();
-
-      if (!user) {
-        alert("You must be logged in to create a poll.");
-        return;
-      }
-
-      if (!question || !option1 || !option2) {
-        alert("Fill in all poll fields.");
-        return;
-      }
-
-      try {
-        await addDoc(collection(db, "polls"), {
-          question,
-          options: [option1, option2],
-          createdAt: Timestamp.now(),
-          status: "open",
-          userId: user.uid,
-          userEmail: user.email || ""
-        });
-
-        createPollMessage.textContent = "Poll created!";
-        questionInput.value = "";
-        option1Input.value = "";
-        option2Input.value = "";
-
-        await loadPolls();
-      } catch (error) {
-        console.error(error);
-        alert("Error creating poll.");
-      }
-    });
-
-    async function voteForPoll(pollId, selectedOption) {
-      const user = auth.currentUser;
-
-      if (!user) {
-        alert("Log in to vote.");
-        return;
-      }
-
-      try {
-        const existingVoteQuery = query(
-          collection(db, "votes"),
-          where("pollId", "==", pollId),
-          where("userId", "==", user.uid)
-        );
-
-        const existingVoteSnapshot = await getDocs(existingVoteQuery);
-        const messageBox = document.getElementById(`message-${pollId}`);
-
-        if (!existingVoteSnapshot.empty) {
-          if (messageBox) {
-            messageBox.textContent = "You already voted on this poll.";
-          }
-          return;
-        }
-
-        await addDoc(collection(db, "votes"), {
-          pollId,
-          userId: user.uid,
-          userEmail: user.email || "",
-          option: selectedOption,
-          createdAt: Timestamp.now()
-        });
-
-        if (messageBox) {
-          messageBox.textContent = "Vote recorded!";
-        }
-      } catch (error) {
-        console.error(error);
-        alert("Error recording vote.");
-      }
-    }
-
-    async function loadPolls() {
-      pollList.innerHTML = "Loading polls...";
-
-      try {
-        let pollsSnapshot;
-
-        try {
-          const orderedQuery = query(collection(db, "polls"), orderBy("createdAt", "desc"));
-          pollsSnapshot = await getDocs(orderedQuery);
-        } catch {
-          pollsSnapshot = await getDocs(collection(db, "polls"));
-        }
-
-        if (pollsSnapshot.empty) {
-          pollList.innerHTML = "<p>No polls yet.</p>";
-          return;
-        }
-
-        pollList.innerHTML = "";
-
-        pollsSnapshot.forEach((docSnap) => {
-          const data = docSnap.data();
-          const pollId = docSnap.id;
-          const question = escapeHtml(data.question || "Untitled poll");
-          const option1 = escapeHtml(data.options?.[0] || "Option 1");
-          const option2 = escapeHtml(data.options?.[1] || "Option 2");
-
-          const pollDiv = document.createElement("div");
-          pollDiv.className = "poll-card";
-          pollDiv.innerHTML = `
-            <strong>${question}</strong>
-            <div class="small-text">Created by: ${escapeHtml(data.userEmail || "Unknown")}</div>
-            <div style="margin-top:10px;">
-              <button class="option-btn" data-poll-id="${pollId}" data-option="${option1}">${option1}</button>
-              <button class="option-btn" data-poll-id="${pollId}" data-option="${option2}">${option2}</button>
-            </div>
-            <div id="message-${pollId}" class="small-text" style="margin-top:8px;"></div>
-          `;
-
-          pollList.appendChild(pollDiv);
-        });
-
-        document.querySelectorAll(".option-btn").forEach((button) => {
-          button.addEventListener("click", () => {
-            voteForPoll(button.dataset.pollId, button.dataset.option);
-          });
-        });
-      } catch (error) {
-        console.error(error);
-        pollList.innerHTML = "<p>Error loading polls.</p>";
-      }
-    }
-
-    onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        authStatus.textContent = `Logged in as ${user.email || "Google user"}`;
-        logoutBtn.style.display = "inline-block";
-        createPollSection.style.display = "block";
-      } else {
-        authStatus.textContent = "Not logged in";
-        logoutBtn.style.display = "none";
-        createPollSection.style.display = "none";
-      }
-
-      await loadPolls();
-    });
-  </script>
 </body>
 </html>
