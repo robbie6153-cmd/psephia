@@ -1,0 +1,14 @@
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #000;
+}
+
+.home-image {
+  max-width: 100%;
+  max-height: 100vh;
+  height: auto;
+}
