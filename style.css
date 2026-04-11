@@ -97,7 +97,63 @@ body {
 .intro-container p {
   margin-bottom: 20px;
 }
+.auth-section {
+  width: 100%;
+  padding: 40px 20px;
+  background: #f3f3f3;
+  text-align: center;
+  box-sizing: border-box;
+}
 
+.auth-container {
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+.auth-container h2 {
+  font-size: 2rem;
+  margin-top: 0;
+  margin-bottom: 25px;
+}
+
+.auth-btn {
+  width: 100%;
+  padding: 14px;
+  margin-bottom: 12px;
+  border-radius: 10px;
+  font-size: 16px;
+  cursor: pointer;
+  box-sizing: border-box;
+  border: none;
+}
+
+.auth-btn.primary {
+  background: #4a2c82;
+  color: white;
+}
+
+.auth-btn.secondary {
+  background: white;
+  color: #111;
+  border: 1px solid #ccc;
+}
+
+.auth-btn.apple {
+  background: black;
+  color: white;
+}
+
+.auth-btn.google {
+  background: white;
+  color: #111;
+  border: 1px solid #ccc;
+}
+
+.divider {
+  margin: 15px 0;
+  font-size: 14px;
+  color: #777;
+}
 @media (max-width: 768px) {
   .menu-wrapper {
     top: 14px;

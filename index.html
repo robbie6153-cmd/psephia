@@ -4,205 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Psephia</title>
-
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      width: 100%;
-      overflow-x: hidden;
-      font-family: Georgia, serif;
-      background: #f3f3f3;
-      color: #111;
-    }
-
-    body {
-      position: relative;
-    }
-
-    .menu-wrapper {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      z-index: 1000;
-    }
-
-    .menu-button {
-      background: rgba(255, 255, 255, 0.95);
-      border: 1px solid #ccc;
-      border-radius: 10px;
-      font-size: 28px;
-      padding: 8px 14px;
-      cursor: pointer;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.12);
-    }
-
-    .dropdown-menu {
-      display: none;
-      position: absolute;
-      top: 55px;
-      right: 0;
-      width: 230px;
-      background: white;
-      border: 1px solid #ddd;
-      border-radius: 12px;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-      overflow: hidden;
-    }
-
-    .dropdown-menu.show {
-      display: block;
-    }
-
-    .dropdown-menu a {
-      display: block;
-      padding: 14px 16px;
-      text-decoration: none;
-      color: #111;
-      font-size: 16px;
-      border-bottom: 1px solid #eee;
-    }
-
-    .dropdown-menu a:last-child {
-      border-bottom: none;
-    }
-
-    .dropdown-menu a:hover {
-      background: #f5f5f5;
-    }
-
-    .home-image {
-      display: block;
-      width: 100%;
-      height: auto;
-    }
-<div class="auth-section">
-  <div class="auth-container">
-    <h2>Join Psephia</h2>
-
-    <button class="auth-btn primary">Sign Up</button>
-    <button class="auth-btn secondary">Log In</button>
-
-    <div class="divider">or</div>
-
-    <button class="auth-btn apple">Sign in with Apple</button>
-    <button class="auth-btn google">Sign in with Google</button>
-  </div>
-</div>
-    .intro-section {
-      width: 100%;
-      padding: 50px 20px;
-      background: #f3f3f3;
-      box-sizing: border-box;
-    }
-
-    .intro-container {
-      max-width: 900px;
-      margin: 0 auto;
-      line-height: 1.8;
-      font-size: 1.1rem;
-    }
-
-    .intro-container h2 {
-      font-size: 2.4rem;
-      margin-top: 0;
-      margin-bottom: 25px;
-    }
-
-    .intro-container h3 {
-      font-size: 1.6rem;
-      margin-top: 40px;
-      margin-bottom: 20px;
-    }
-
-    .intro-container p {
-      margin-bottom: 20px;
-    }
-
-    @media (max-width: 768px) {
-      .menu-wrapper {
-        top: 14px;
-        right: 14px;
-      }
-
-      .menu-button {
-        font-size: 24px;
-        padding: 6px 12px;
-      }
-
-      .dropdown-menu {
-        width: 210px;
-      }
-
-      .intro-section {
-        padding: 35px 20px;
-      }
-
-      .intro-container {
-        font-size: 1rem;
-      }
-
-      .intro-container h2 {
-        font-size: 2rem;
-      }
-
-      .intro-container h3 {
-        font-size: 1.4rem;
-      }
-    }
-    .auth-section {
-  width: 100%;
-  padding: 40px 20px;
-  background: #f3f3f3;
-  text-align: center;
-}
-
-.auth-container {
-  max-width: 400px;
-  margin: 0 auto;
-}
-
-.auth-container h2 {
-  margin-bottom: 25px;
-  font-size: 1.8rem;
-}
-
-.auth-btn {
-  width: 100%;
-  padding: 14px;
-  margin-bottom: 12px;
-  border-radius: 10px;
-  font-size: 16px;
-  cursor: pointer;
-  border: none;
-}
-
-.auth-btn.primary {
-  background: #4a2c82;
-  color: white;
-}
-
-.auth-btn.secondary {
-  background: white;
-  border: 1px solid #ccc;
-}
-
-.auth-btn.apple {
-  background: black;
-  color: white;
-}
-
-.auth-btn.google {
-  background: white;
-  border: 1px solid #ccc;
-}
-
-.divider {
-  margin: 15px 0;
-  font-size: 14px;
-  color: #777;
-}
-  </style>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
@@ -215,8 +17,6 @@
       <a href="profile.html">My Profile</a>
       <a href="login.html">Log In</a>
       <a href="signup.html">Sign Up</a>
-      <a href="about.html">About</a>
-      <a href="contact.html">Contact</a>
       <a href="privacy.html">Privacy Policy</a>
       <a href="terms.html">Terms of Use</a>
     </div>
@@ -224,58 +24,30 @@
 
   <img src="homepage.jpg" alt="Psephia homepage" class="home-image">
 
-  <section class="intro-section">
-    <div class="intro-container">
-      <h2>About Psephia</h2>
-
-      <p>
-        Psephia is a new social media website by RobTechUK, inspired by the Ancient Greek word
-        <em>psephia</em>, meaning pebble, which was once used by people to vote.
-      </p>
-
-      <p>
-        The site allows users to submit questions for other users to vote on, or to vote on topics
-        submitted by others.
-      </p>
-
-      <p>
-        A post can remain open for up to 7 days, and once voting has closed, the result will be
-        revealed. Users will not be able to see how others have voted until the voting period has ended.
-      </p>
-
-      <p>
-        Once a vote has ended, comments will be allowed on the post so users can discuss the result.
-      </p>
-
-      <h3>General Rules</h3>
-
-      <p>
-        We want to keep debate on Psephia civil, respectful, and lawful. RobTechUK may remove posts
-        or comments that incite violence, promote hatred, harass other users, encourage illegal activity,
-        or otherwise violate UK law.
-      </p>
-
-      <p>
-        Repeated breaches of these rules may result in content removal or restricted access to the site.
-        For further information, please see our Community Guidelines.
-      </p>
+  <section class="auth-section">
+    <div class="auth-container">
+      <h2>Join Psephia</h2>
+      <button class="auth-btn primary">Sign Up</button>
+      <button class="auth-btn secondary">Log In</button>
+      <div class="divider">or</div>
+      <button class="auth-btn apple">Sign in with Apple</button>
+      <button class="auth-btn google">Sign in with Google</button>
     </div>
   </section>
 
-  <script>
-    function toggleMenu() {
-      document.getElementById("dropdownMenu").classList.toggle("show");
-    }
+  <section class="intro-section">
+    <div class="intro-container">
+      <h2>About Psephia</h2>
+      <p>Psephia is a new social media website by RobTechUK, inspired by the Ancient Greek word <em>psephia</em>, meaning pebble, which was once used by people to vote.</p>
+      <p>The site allows users to submit questions for other users to vote on, or to vote on topics submitted by others.</p>
+      <p>A post can remain open for up to 7 days, and once voting has closed, the result will be revealed. Users will not be able to see how others have voted until the voting period has ended.</p>
+      <p>Once a vote has ended, comments will be allowed on the post so users can discuss the result.</p>
+      <h3>General Rules</h3>
+      <p>We want to keep debate on Psephia civil, respectful, and lawful. RobTechUK may remove posts or comments that incite violence, promote hatred, harass other users, encourage illegal activity, or otherwise violate UK law.</p>
+      <p>Repeated breaches of these rules may result in content removal or restricted access to the site. For further information, please see our Community Guidelines.</p>
+    </div>
+  </section>
 
-    window.addEventListener("click", function(event) {
-      const button = document.querySelector(".menu-button");
-      const menu = document.getElementById("dropdownMenu");
-
-      if (!button.contains(event.target) && !menu.contains(event.target)) {
-        menu.classList.remove("show");
-      }
-    });
-  </script>
-
+  <script src="script.js"></script>
 </body>
 </html>
