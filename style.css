@@ -12,3 +12,33 @@ body {
   max-height: 100vh;
   height: auto;
 }
+.intro-section {
+  width: 100%;
+  padding: 50px 20px;
+  background: #ffffff;
+  color: #111;
+  box-sizing: border-box;
+}
+
+.intro-container {
+  max-width: 900px;
+  margin: 0 auto;
+  text-align: left;
+  line-height: 1.7;
+  font-size: 1.05rem;
+}
+
+.intro-container h2 {
+  font-size: 2rem;
+  margin-bottom: 20px;
+}
+
+.intro-container h3 {
+  font-size: 1.4rem;
+  margin-top: 35px;
+  margin-bottom: 15px;
+}
+
+.intro-container p {
+  margin-bottom: 18px;
+}
