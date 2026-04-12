@@ -5,6 +5,7 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   sendEmailVerification,
+  sendPasswordResetEmail,
   signOut
 } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
 
@@ -37,6 +38,7 @@ const emailInput = document.getElementById("email");
 const passwordInput = document.getElementById("password");
 const signUpBtn = document.getElementById("signUpBtn");
 const loginBtn = document.getElementById("loginBtn");
+const forgotPasswordBtn = document.getElementById("forgotPasswordBtn");
 const logoutBtn = document.getElementById("logout");
 const statusText = document.getElementById("status");
 const loginMessage = document.getElementById("loginMessage");
@@ -81,6 +83,7 @@ signUpBtn.addEventListener("click", async () => {
 
   signUpBtn.disabled = true;
   loginBtn.disabled = true;
+  forgotPasswordBtn.disabled = true;
   loginMessage.textContent = "Creating account...";
 
   try {
@@ -109,6 +112,7 @@ signUpBtn.addEventListener("click", async () => {
   } finally {
     signUpBtn.disabled = false;
     loginBtn.disabled = false;
+    forgotPasswordBtn.disabled = false;
   }
 });
 
@@ -123,6 +127,7 @@ loginBtn.addEventListener("click", async () => {
 
   signUpBtn.disabled = true;
   loginBtn.disabled = true;
+  forgotPasswordBtn.disabled = true;
   loginMessage.textContent = "Logging in...";
 
   try {
@@ -153,6 +158,44 @@ loginBtn.addEventListener("click", async () => {
   } finally {
     signUpBtn.disabled = false;
     loginBtn.disabled = false;
+    forgotPasswordBtn.disabled = false;
+  }
+});
+
+forgotPasswordBtn.addEventListener("click", async () => {
+  const email = emailInput.value.trim();
+
+  if (!email) {
+    loginMessage.textContent = "Enter your email address first, then press Forgot Password.";
+    return;
+  }
+
+  forgotPasswordBtn.disabled = true;
+  signUpBtn.disabled = true;
+  loginBtn.disabled = true;
+  loginMessage.textContent = "Sending password reset email...";
+
+  try {
+    await sendPasswordResetEmail(auth, email, {
+      url: window.location.origin + "/app.html"
+    });
+
+    loginMessage.innerHTML = `
+      We have sent you a password reset email.<br><br>
+      Please use the newest email if you requested more than one reset link.
+    `;
+  } catch (error) {
+    console.error("Password reset error:", error);
+
+    if (error.code === "auth/invalid-email") {
+      loginMessage.textContent = "Please enter a valid email address.";
+    } else {
+      loginMessage.textContent = error.message || "Could not send password reset email.";
+    }
+  } finally {
+    forgotPasswordBtn.disabled = false;
+    signUpBtn.disabled = false;
+    loginBtn.disabled = false;
   }
 });
 
@@ -171,6 +214,7 @@ onAuthStateChanged(auth, async (user) => {
       logoutBtn.style.display = "none";
       signUpBtn.style.display = "inline-block";
       loginBtn.style.display = "inline-block";
+      forgotPasswordBtn.style.display = "inline-block";
       emailInput.style.display = "block";
       passwordInput.style.display = "block";
       createPollCard.style.display = "none";
@@ -183,6 +227,7 @@ onAuthStateChanged(auth, async (user) => {
     logoutBtn.style.display = "inline-block";
     signUpBtn.style.display = "none";
     loginBtn.style.display = "none";
+    forgotPasswordBtn.style.display = "none";
     emailInput.style.display = "none";
     passwordInput.style.display = "none";
 
@@ -201,6 +246,7 @@ onAuthStateChanged(auth, async (user) => {
     logoutBtn.style.display = "none";
     signUpBtn.style.display = "inline-block";
     loginBtn.style.display = "inline-block";
+    forgotPasswordBtn.style.display = "inline-block";
     emailInput.style.display = "block";
     passwordInput.style.display = "block";
     createPollCard.style.display = "none";
