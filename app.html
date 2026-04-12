@@ -62,7 +62,7 @@
   <div class="card">
     <h2>Login</h2>
     <input id="email" type="email" placeholder="Email" />
-    <button id="sendLink">Email Me a Sign-In Link</button>
+    <button id="sendLink">Sign Up / Log In by Email</button>
     <button id="logout" style="display:none;">Log Out</button>
     <p id="status">Not logged in</p>
     <p id="loginMessage"></p>
@@ -155,23 +155,33 @@
       handleCodeInApp: true
     };
 
-    sendLinkBtn.addEventListener("click", async () => {
-      const email = emailInput.value.trim();
+   sendLinkBtn.addEventListener("click", async () => {
+  const email = emailInput.value.trim();
 
-      if (!email) {
-        loginMessage.textContent = "Please enter your email address.";
-        return;
-      }
+  if (!email) {
+    loginMessage.textContent = "Please enter your email address.";
+    return;
+  }
 
-      try {
-        await sendSignInLinkToEmail(auth, email, actionCodeSettings);
-        window.localStorage.setItem("emailForSignIn", email);
-        loginMessage.textContent = "Sign-in link sent. Check your email.";
-      } catch (error) {
-        loginMessage.textContent = "Error: " + error.message;
-        console.error(error);
-      }
-    });
+  sendLinkBtn.disabled = true;
+  loginMessage.textContent = "Sending your email link...";
+
+  try {
+    await sendSignInLinkToEmail(auth, email, actionCodeSettings);
+    window.localStorage.setItem("emailForSignIn", email);
+
+    loginMessage.innerHTML = `
+      We have sent you an email sign-in link.<br><br>
+      This may take up to a minute to arrive.<br>
+      Please also check your junk or spam folder.
+    `;
+  } catch (error) {
+    loginMessage.textContent = "Error: " + error.message;
+    console.error(error);
+  } finally {
+    sendLinkBtn.disabled = false;
+  }
+});
 
     logoutBtn.addEventListener("click", async () => {
       await signOut(auth);
