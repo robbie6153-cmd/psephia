@@ -2,9 +2,9 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/fireba
 import {
   getAuth,
   onAuthStateChanged,
-  sendSignInLinkToEmail,
-  isSignInWithEmailLink,
-  signInWithEmailLink,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  sendEmailVerification,
   signOut
 } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
 
@@ -17,8 +17,7 @@ import {
   query,
   orderBy,
   doc,
-  getDoc,
-  runTransaction
+  getDoc
 } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -35,18 +34,12 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 const emailInput = document.getElementById("email");
-const sendLinkBtn = document.getElementById("sendLink");
+const passwordInput = document.getElementById("password");
+const signUpBtn = document.getElementById("signUpBtn");
+const loginBtn = document.getElementById("loginBtn");
 const logoutBtn = document.getElementById("logout");
 const statusText = document.getElementById("status");
 const loginMessage = document.getElementById("loginMessage");
-
-const yourDetailsCard = document.getElementById("yourDetails");
-const firstNameInput = document.getElementById("firstName");
-const surnameInput = document.getElementById("surname");
-const countryInput = document.getElementById("country");
-const usernameInput = document.getElementById("username");
-const saveProfileBtn = document.getElementById("saveProfile");
-const profileMessage = document.getElementById("profileMessage");
 
 const createPollCard = document.getElementById("createPoll");
 const questionInput = document.getElementById("question");
@@ -58,212 +51,186 @@ const pollsCard = document.getElementById("pollsCard");
 
 window.toggleMenu = function () {
   const menu = document.getElementById("dropdownMenu");
-  menu.classList.toggle("show");
+  if (menu) {
+    menu.classList.toggle("show");
+  }
 };
 
 document.addEventListener("click", (event) => {
   const menu = document.getElementById("dropdownMenu");
   const wrapper = document.querySelector(".menu-wrapper");
 
-  if (wrapper && !wrapper.contains(event.target)) {
+  if (menu && wrapper && !wrapper.contains(event.target)) {
     menu.classList.remove("show");
   }
 });
 
-const actionCodeSettings = {
-  url: window.location.origin + window.location.pathname,
-  handleCodeInApp: true
-};
-
-sendLinkBtn.addEventListener("click", async () => {
+signUpBtn.addEventListener("click", async () => {
   const email = emailInput.value.trim();
+  const password = passwordInput.value.trim();
 
-  if (!email) {
-    loginMessage.textContent = "Please enter your email address.";
+  if (!email || !password) {
+    loginMessage.textContent = "Please enter both email and password.";
     return;
   }
 
-  sendLinkBtn.disabled = true;
-  loginMessage.textContent = "Sending your email link...";
+  if (password.length < 6) {
+    loginMessage.textContent = "Password must be at least 6 characters long.";
+    return;
+  }
+
+  signUpBtn.disabled = true;
+  loginBtn.disabled = true;
+  loginMessage.textContent = "Creating account...";
 
   try {
-    await sendSignInLinkToEmail(auth, email, actionCodeSettings);
-    window.localStorage.setItem("emailForSignIn", email);
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+
+    await sendEmailVerification(userCredential.user);
+
+    await signOut(auth);
 
     loginMessage.innerHTML = `
-      We have sent you an email link so you can sign in or create your account.<br><br>
-      It may take up to a minute to arrive.<br>
-      Please check your junk or spam folder if you do not see it.
+      We have sent you a verification email.<br><br>
+      Please click the link in that email, then return here and log in.
     `;
   } catch (error) {
-    console.error("Email link error:", error);
-    loginMessage.textContent = `Could not send email link: ${error.code || ""} ${error.message || ""}`;
+    console.error("Sign up error:", error);
+
+    if (error.code === "auth/email-already-in-use") {
+      loginMessage.textContent = "An account already exists with that email.";
+    } else if (error.code === "auth/invalid-email") {
+      loginMessage.textContent = "Please enter a valid email address.";
+    } else if (error.code === "auth/weak-password") {
+      loginMessage.textContent = "Password must be at least 6 characters long.";
+    } else {
+      loginMessage.textContent = error.message || "Could not create account.";
+    }
   } finally {
-    sendLinkBtn.disabled = false;
+    signUpBtn.disabled = false;
+    loginBtn.disabled = false;
+  }
+});
+
+loginBtn.addEventListener("click", async () => {
+  const email = emailInput.value.trim();
+  const password = passwordInput.value.trim();
+
+  if (!email || !password) {
+    loginMessage.textContent = "Please enter both email and password.";
+    return;
+  }
+
+  signUpBtn.disabled = true;
+  loginBtn.disabled = true;
+  loginMessage.textContent = "Logging in...";
+
+  try {
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    const user = userCredential.user;
+
+    if (!user.emailVerified) {
+      await signOut(auth);
+      loginMessage.textContent = "Please verify your email before logging in.";
+      return;
+    }
+
+    loginMessage.textContent = "Login successful.";
+  } catch (error) {
+    console.error("Login error:", error);
+
+    if (
+      error.code === "auth/invalid-credential" ||
+      error.code === "auth/wrong-password" ||
+      error.code === "auth/user-not-found"
+    ) {
+      loginMessage.textContent = "Incorrect email or password.";
+    } else if (error.code === "auth/invalid-email") {
+      loginMessage.textContent = "Please enter a valid email address.";
+    } else {
+      loginMessage.textContent = error.message || "Could not log in.";
+    }
+  } finally {
+    signUpBtn.disabled = false;
+    loginBtn.disabled = false;
   }
 });
 
 logoutBtn.addEventListener("click", async () => {
-  await signOut(auth);
+  try {
+    await signOut(auth);
+  } catch (error) {
+    console.error("Logout error:", error);
+  }
 });
-
-if (isSignInWithEmailLink(auth, window.location.href)) {
-  let email = window.localStorage.getItem("emailForSignIn");
-
-  if (!email) {
-    email = window.prompt("Please confirm your email address");
-  }
-
-  if (email) {
-    signInWithEmailLink(auth, email, window.location.href)
-      .then(() => {
-        window.localStorage.removeItem("emailForSignIn");
-        loginMessage.textContent = "You are now signed in.";
-        window.history.replaceState({}, document.title, window.location.pathname);
-      })
-      .catch((error) => {
-        loginMessage.textContent = "Error: " + error.message;
-        console.error(error);
-      });
-  }
-}
 
 onAuthStateChanged(auth, async (user) => {
   if (user) {
+    if (!user.emailVerified) {
+      statusText.textContent = "Email not verified";
+      logoutBtn.style.display = "none";
+      signUpBtn.style.display = "inline-block";
+      loginBtn.style.display = "inline-block";
+      emailInput.style.display = "block";
+      passwordInput.style.display = "block";
+      createPollCard.style.display = "none";
+      pollsCard.style.display = "none";
+      pollsDiv.innerHTML = "";
+      return;
+    }
+
     statusText.textContent = "Logged in: " + user.email;
     logoutBtn.style.display = "inline-block";
-    sendLinkBtn.style.display = "none";
+    signUpBtn.style.display = "none";
+    loginBtn.style.display = "none";
     emailInput.style.display = "none";
-    pollsCard.style.display = "block";
+    passwordInput.style.display = "none";
 
-    await checkProfile(user.uid);
+    const hasProfile = await userHasProfile(user.uid);
+
+    if (!hasProfile) {
+      window.location.href = "create-account.html";
+      return;
+    }
+
+    createPollCard.style.display = "block";
+    pollsCard.style.display = "block";
     loadPolls();
   } else {
     statusText.textContent = "Not logged in";
     logoutBtn.style.display = "none";
-    sendLinkBtn.style.display = "inline-block";
+    signUpBtn.style.display = "inline-block";
+    loginBtn.style.display = "inline-block";
     emailInput.style.display = "block";
-
-    yourDetailsCard.style.display = "none";
+    passwordInput.style.display = "block";
     createPollCard.style.display = "none";
     pollsCard.style.display = "none";
     pollsDiv.innerHTML = "";
   }
 });
 
-async function checkProfile(uid) {
+async function userHasProfile(uid) {
   try {
     const userRef = doc(db, "users", uid);
     const userSnap = await getDoc(userRef);
 
-    if (userSnap.exists()) {
-      const userData = userSnap.data();
-
-      if (
-        userData.firstName &&
-        userData.surname &&
-        userData.country &&
-        userData.username
-      ) {
-        yourDetailsCard.style.display = "none";
-        createPollCard.style.display = "block";
-      } else {
-        yourDetailsCard.style.display = "block";
-        createPollCard.style.display = "none";
-
-        firstNameInput.value = userData.firstName || "";
-        surnameInput.value = userData.surname || "";
-        countryInput.value = userData.country || "";
-        usernameInput.value = userData.username || "";
-      }
-    } else {
-      yourDetailsCard.style.display = "block";
-      createPollCard.style.display = "none";
+    if (!userSnap.exists()) {
+      return false;
     }
+
+    const userData = userSnap.data();
+
+    return !!(
+      userData.firstName &&
+      userData.surname &&
+      userData.country &&
+      userData.username
+    );
   } catch (error) {
-    console.error(error);
+    console.error("Profile check error:", error);
+    return false;
   }
 }
-
-saveProfileBtn.addEventListener("click", async () => {
-  const user = auth.currentUser;
-
-  if (!user) {
-    profileMessage.textContent = "You must be logged in.";
-    return;
-  }
-
-  const firstName = firstNameInput.value.trim();
-  const surname = surnameInput.value.trim();
-  const country = countryInput.value.trim();
-  const usernameRaw = usernameInput.value.trim();
-
-  if (!firstName || !surname || !country || !usernameRaw) {
-    profileMessage.textContent = "Please complete all fields.";
-    return;
-  }
-
-  const username = usernameRaw.toLowerCase();
-
-  if (!/^[a-z0-9_]{3,20}$/.test(username)) {
-    profileMessage.textContent =
-      "Username must be 3 to 20 characters and use only letters, numbers, or underscores.";
-    return;
-  }
-
-  const userRef = doc(db, "users", user.uid);
-  const usernameRef = doc(db, "usernames", username);
-
-  try {
-    await runTransaction(db, async (transaction) => {
-      const userSnap = await transaction.get(userRef);
-      const usernameSnap = await transaction.get(usernameRef);
-
-      const existingUserData = userSnap.exists() ? userSnap.data() : null;
-      const currentUsername = existingUserData?.username || null;
-
-      if (usernameSnap.exists()) {
-        const usernameOwner = usernameSnap.data().uid;
-
-        if (usernameOwner !== user.uid) {
-          throw new Error("That username is already taken. Please use another.");
-        }
-      }
-
-      transaction.set(
-        userRef,
-        {
-          email: user.email,
-          firstName,
-          surname,
-          country,
-          username,
-          createdAt: existingUserData?.createdAt || Timestamp.now(),
-          updatedAt: Timestamp.now()
-        },
-        { merge: true }
-      );
-
-      transaction.set(usernameRef, {
-        uid: user.uid,
-        username: username,
-        updatedAt: Timestamp.now()
-      });
-
-      if (currentUsername && currentUsername !== username) {
-        const oldUsernameRef = doc(db, "usernames", currentUsername);
-        transaction.delete(oldUsernameRef);
-      }
-    });
-
-    profileMessage.textContent = "Details saved.";
-    yourDetailsCard.style.display = "none";
-    createPollCard.style.display = "block";
-  } catch (error) {
-    profileMessage.textContent = error.message || "Could not save details.";
-    console.error(error);
-  }
-});
 
 createBtn.addEventListener("click", async () => {
   const user = auth.currentUser;
@@ -294,10 +261,10 @@ createBtn.addEventListener("click", async () => {
     option1Input.value = "";
     option2Input.value = "";
 
-    loadPolls();
+    await loadPolls();
   } catch (error) {
+    console.error("Create poll error:", error);
     alert("Error creating poll: " + error.message);
-    console.error(error);
   }
 });
 
@@ -307,6 +274,11 @@ async function loadPolls() {
     const snap = await getDocs(q);
 
     pollsDiv.innerHTML = "";
+
+    if (snap.empty) {
+      pollsDiv.innerHTML = "<p>No polls yet.</p>";
+      return;
+    }
 
     snap.forEach((docItem) => {
       const p = docItem.data();
@@ -319,12 +291,8 @@ async function loadPolls() {
         </div>
       `;
     });
-
-    if (!snap.size) {
-      pollsDiv.innerHTML = "<p>No polls yet.</p>";
-    }
   } catch (error) {
-    console.error(error);
+    console.error("Load polls error:", error);
     pollsDiv.innerHTML = "<p>Could not load polls.</p>";
   }
 }

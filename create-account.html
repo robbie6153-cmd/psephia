@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Create Account - Psephia</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="menu-wrapper">
+    <button class="menu-button" onclick="toggleMenu()">☰</button>
+    <div id="dropdownMenu" class="dropdown-menu">
+      <a href="index.html">Home</a>
+      <a href="app.html">App</a>
+      <a href="community-guidelines.html">Community Guidelines</a>
+      <a href="privacy.html">Privacy Policy</a>
+      <a href="terms.html">Terms of Use</a>
+    </div>
+  </div>
+
+  <main class="app-page">
+    <div class="card">
+      <h2>Create Account</h2>
+      <p>Please complete your details.</p>
+
+      <input id="firstName" placeholder="First name" />
+      <input id="surname" placeholder="Last name" />
+
+      <select id="country">
+        <option value="">Select country</option>
+        <option value="United Kingdom">United Kingdom</option>
+        <option value="United States">United States</option>
+        <option value="Ireland">Ireland</option>
+        <option value="Canada">Canada</option>
+        <option value="Australia">Australia</option>
+      </select>
+
+      <input id="username" placeholder="Username" />
+      <button id="saveProfile">Save Details</button>
+      <p id="profileMessage"></p>
+    </div>
+  </main>
+
+  <script type="module" src="create-account.js"></script>
+</body>
+</html>
