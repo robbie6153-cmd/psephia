@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Psephia App</title>
 
   <style>
@@ -22,15 +22,22 @@
       border: 1px solid #ddd;
     }
 
-    input, button {
+    input,
+    button {
       padding: 10px;
       margin: 6px 0;
       font-size: 16px;
+      box-sizing: border-box;
     }
 
     input {
       width: 100%;
       max-width: 400px;
+      display: block;
+    }
+
+    button {
+      cursor: pointer;
     }
 
     .poll {
@@ -39,106 +46,358 @@
       margin-bottom: 10px;
       border-radius: 8px;
     }
+
+    #status,
+    #loginMessage,
+    #profileMessage {
+      margin-top: 10px;
+    }
   </style>
 </head>
 
 <body>
 
-<h1>Psephia</h1>
+  <h1>Psephia</h1>
 
-<div class="card">
-  <h2>Login</h2>
-  <input id="email" placeholder="Email">
-  <input id="password" type="password" placeholder="Password">
-  <br>
-  <button id="signup">Sign Up</button>
-  <button id="login">Log In</button>
-  <button id="logout">Log Out</button>
-  <p id="status">Not logged in</p>
-</div>
+  <div class="card">
+    <h2>Login</h2>
+    <input id="email" type="email" placeholder="Email" />
+    <button id="sendLink">Email Me a Sign-In Link</button>
+    <button id="logout" style="display:none;">Log Out</button>
+    <p id="status">Not logged in</p>
+    <p id="loginMessage"></p>
+  </div>
 
-<div id="createPoll" class="card" style="display:none;">
-  <h2>Create Poll</h2>
-  <input id="question" placeholder="Question">
-  <input id="option1" placeholder="Option 1">
-  <input id="option2" placeholder="Option 2">
-  <button id="create">Create</button>
-</div>
+  <div id="yourDetails" class="card" style="display:none;">
+    <h2>Your Details</h2>
+    <input id="firstName" placeholder="First name" />
+    <input id="surname" placeholder="Surname" />
+    <input id="country" placeholder="Country" />
+    <input id="username" placeholder="Username" />
+    <button id="saveProfile">Save Details</button>
+    <p id="profileMessage"></p>
+  </div>
 
-<div class="card">
-  <h2>Polls</h2>
-  <div id="polls"></div>
-</div>
+  <div id="createPoll" class="card" style="display:none;">
+    <h2>Create Poll</h2>
+    <input id="question" placeholder="Question" />
+    <input id="option1" placeholder="Option 1" />
+    <input id="option2" placeholder="Option 2" />
+    <button id="create">Create</button>
+  </div>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
-import {
-  getAuth, onAuthStateChanged,
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  signOut
-} from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
+  <div class="card">
+    <h2>Polls</h2>
+    <div id="polls"></div>
+  </div>
 
-import {
-  getFirestore, collection, addDoc, getDocs, Timestamp
-} from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
+    import {
+      getAuth,
+      onAuthStateChanged,
+      sendSignInLinkToEmail,
+      isSignInWithEmailLink,
+      signInWithEmailLink,
+      signOut
+    } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyB26YRL03IuiYtFFc3_aweQ8EDe8_DWUd0",
-  authDomain: "psephia-9807e.firebaseapp.com",
-  projectId: "psephia-9807e",
-  storageBucket: "psephia-9807e.firebasestorage.app",
-  messagingSenderId: "1085776731080",
-  appId: "1:1085776731080:web:ef9dade729d7f043b7befd"
-};
+    import {
+      getFirestore,
+      collection,
+      addDoc,
+      getDocs,
+      Timestamp,
+      query,
+      orderBy,
+      doc,
+      getDoc,
+      runTransaction
+    } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+    const firebaseConfig = {
+      apiKey: "AIzaSyB26YRL03IuiYtFFc3_aweQ8EDe8_DWUd0",
+      authDomain: "psephia-9807e.firebaseapp.com",
+      projectId: "psephia-9807e",
+      storageBucket: "psephia-9807e.firebasestorage.app",
+      messagingSenderId: "1085776731080",
+      appId: "1:1085776731080:web:ef9dade729d7f043b7befd"
+    };
 
-// auth
-signup.onclick = () =>
-  createUserWithEmailAndPassword(auth, email.value, password.value);
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
-login.onclick = () =>
-  signInWithEmailAndPassword(auth, email.value, password.value);
+    const emailInput = document.getElementById("email");
+    const sendLinkBtn = document.getElementById("sendLink");
+    const logoutBtn = document.getElementById("logout");
+    const statusText = document.getElementById("status");
+    const loginMessage = document.getElementById("loginMessage");
 
-logout.onclick = () => signOut(auth);
+    const yourDetailsCard = document.getElementById("yourDetails");
+    const firstNameInput = document.getElementById("firstName");
+    const surnameInput = document.getElementById("surname");
+    const countryInput = document.getElementById("country");
+    const usernameInput = document.getElementById("username");
+    const saveProfileBtn = document.getElementById("saveProfile");
+    const profileMessage = document.getElementById("profileMessage");
 
-onAuthStateChanged(auth, user => {
-  status.textContent = user ? "Logged in: " + user.email : "Not logged in";
-  createPoll.style.display = user ? "block" : "none";
-  loadPolls();
-});
+    const createPollCard = document.getElementById("createPoll");
+    const questionInput = document.getElementById("question");
+    const option1Input = document.getElementById("option1");
+    const option2Input = document.getElementById("option2");
+    const createBtn = document.getElementById("create");
+    const pollsDiv = document.getElementById("polls");
 
-// create poll
-create.onclick = async () => {
-  await addDoc(collection(db, "polls"), {
-    question: question.value,
-    options: [option1.value, option2.value],
-    createdAt: Timestamp.now()
-  });
+    const actionCodeSettings = {
+      url: "https://psephia.com/",
+      handleCodeInApp: true
+    };
 
-  loadPolls();
-};
+    sendLinkBtn.addEventListener("click", async () => {
+      const email = emailInput.value.trim();
 
-// load polls
-async function loadPolls() {
-  const snap = await getDocs(collection(db, "polls"));
-  polls.innerHTML = "";
+      if (!email) {
+        loginMessage.textContent = "Please enter your email address.";
+        return;
+      }
 
-  snap.forEach(doc => {
-    const p = doc.data();
-    polls.innerHTML += `
-      <div class="poll">
-        <strong>${p.question}</strong><br>
-        ${p.options[0]}<br>
-        ${p.options[1]}
-      </div>
-    `;
-  });
-}
-</script>
+      try {
+        await sendSignInLinkToEmail(auth, email, actionCodeSettings);
+        window.localStorage.setItem("emailForSignIn", email);
+        loginMessage.textContent = "Sign-in link sent. Check your email.";
+      } catch (error) {
+        loginMessage.textContent = "Error: " + error.message;
+        console.error(error);
+      }
+    });
+
+    logoutBtn.addEventListener("click", async () => {
+      await signOut(auth);
+    });
+
+    if (isSignInWithEmailLink(auth, window.location.href)) {
+      let email = window.localStorage.getItem("emailForSignIn");
+
+      if (!email) {
+        email = window.prompt("Please confirm your email address");
+      }
+
+      if (email) {
+        signInWithEmailLink(auth, email, window.location.href)
+          .then(() => {
+            window.localStorage.removeItem("emailForSignIn");
+            loginMessage.textContent = "You are now signed in.";
+            window.history.replaceState({}, document.title, window.location.pathname);
+          })
+          .catch((error) => {
+            loginMessage.textContent = "Error: " + error.message;
+            console.error(error);
+          });
+      }
+    }
+
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        statusText.textContent = "Logged in: " + user.email;
+        logoutBtn.style.display = "inline-block";
+        sendLinkBtn.style.display = "none";
+        emailInput.style.display = "none";
+
+        await checkProfile(user.uid);
+      } else {
+        statusText.textContent = "Not logged in";
+        logoutBtn.style.display = "none";
+        sendLinkBtn.style.display = "inline-block";
+        emailInput.style.display = "block";
+
+        yourDetailsCard.style.display = "none";
+        createPollCard.style.display = "none";
+      }
+
+      loadPolls();
+    });
+
+    async function checkProfile(uid) {
+      try {
+        const userRef = doc(db, "users", uid);
+        const userSnap = await getDoc(userRef);
+
+        if (userSnap.exists()) {
+          const userData = userSnap.data();
+
+          if (
+            userData.firstName &&
+            userData.surname &&
+            userData.country &&
+            userData.username
+          ) {
+            yourDetailsCard.style.display = "none";
+            createPollCard.style.display = "block";
+          } else {
+            yourDetailsCard.style.display = "block";
+            createPollCard.style.display = "none";
+
+            firstNameInput.value = userData.firstName || "";
+            surnameInput.value = userData.surname || "";
+            countryInput.value = userData.country || "";
+            usernameInput.value = userData.username || "";
+          }
+        } else {
+          yourDetailsCard.style.display = "block";
+          createPollCard.style.display = "none";
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
+    saveProfileBtn.addEventListener("click", async () => {
+      const user = auth.currentUser;
+
+      if (!user) {
+        profileMessage.textContent = "You must be logged in.";
+        return;
+      }
+
+      const firstName = firstNameInput.value.trim();
+      const surname = surnameInput.value.trim();
+      const country = countryInput.value.trim();
+      const usernameRaw = usernameInput.value.trim();
+
+      if (!firstName || !surname || !country || !usernameRaw) {
+        profileMessage.textContent = "Please complete all fields.";
+        return;
+      }
+
+      const username = usernameRaw.toLowerCase();
+
+      if (!/^[a-z0-9_]{3,20}$/.test(username)) {
+        profileMessage.textContent =
+          "Username must be 3 to 20 characters and use only letters, numbers, or underscores.";
+        return;
+      }
+
+      const userRef = doc(db, "users", user.uid);
+      const usernameRef = doc(db, "usernames", username);
+
+      try {
+        await runTransaction(db, async (transaction) => {
+          const userSnap = await transaction.get(userRef);
+          const usernameSnap = await transaction.get(usernameRef);
+
+          const existingUserData = userSnap.exists() ? userSnap.data() : null;
+          const currentUsername = existingUserData?.username || null;
+
+          if (usernameSnap.exists()) {
+            const usernameOwner = usernameSnap.data().uid;
+
+            if (usernameOwner !== user.uid) {
+              throw new Error("That username is already taken. Please use another.");
+            }
+          }
+
+          transaction.set(userRef, {
+            email: user.email,
+            firstName,
+            surname,
+            country,
+            username,
+            createdAt: existingUserData?.createdAt || Timestamp.now(),
+            updatedAt: Timestamp.now()
+          }, { merge: true });
+
+          transaction.set(usernameRef, {
+            uid: user.uid,
+            username: username,
+            updatedAt: Timestamp.now()
+          });
+
+          if (currentUsername && currentUsername !== username) {
+            const oldUsernameRef = doc(db, "usernames", currentUsername);
+            transaction.delete(oldUsernameRef);
+          }
+        });
+
+        profileMessage.textContent = "Details saved.";
+        yourDetailsCard.style.display = "none";
+        createPollCard.style.display = "block";
+      } catch (error) {
+        profileMessage.textContent = error.message || "Could not save details.";
+        console.error(error);
+      }
+    });
+
+    createBtn.addEventListener("click", async () => {
+      const user = auth.currentUser;
+
+      if (!user) {
+        alert("You must be logged in.");
+        return;
+      }
+
+      const question = questionInput.value.trim();
+      const option1 = option1Input.value.trim();
+      const option2 = option2Input.value.trim();
+
+      if (!question || !option1 || !option2) {
+        alert("Please complete the question and both options.");
+        return;
+      }
+
+      try {
+        await addDoc(collection(db, "polls"), {
+          question: question,
+          options: [option1, option2],
+          createdAt: Timestamp.now(),
+          createdBy: user.uid
+        });
+
+        questionInput.value = "";
+        option1Input.value = "";
+        option2Input.value = "";
+
+        loadPolls();
+      } catch (error) {
+        alert("Error creating poll: " + error.message);
+        console.error(error);
+      }
+    });
+
+    async function loadPolls() {
+      try {
+        const q = query(collection(db, "polls"), orderBy("createdAt", "desc"));
+        const snap = await getDocs(q);
+
+        pollsDiv.innerHTML = "";
+
+        snap.forEach((docItem) => {
+          const p = docItem.data();
+
+          pollsDiv.innerHTML += `
+            <div class="poll">
+              <strong>${escapeHtml(p.question || "")}</strong><br>
+              ${escapeHtml(p.options?.[0] || "")}<br>
+              ${escapeHtml(p.options?.[1] || "")}
+            </div>
+          `;
+        });
+
+        if (!snap.size) {
+          pollsDiv.innerHTML = "<p>No polls yet.</p>";
+        }
+      } catch (error) {
+        console.error(error);
+        pollsDiv.innerHTML = "<p>Could not load polls.</p>";
+      }
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement("div");
+      div.textContent = text;
+      return div.innerHTML;
+    }
+  </script>
 
 </body>
 </html>
