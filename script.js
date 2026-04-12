@@ -33,7 +33,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-
+const appPage = document.querySelector(".app-page");
 const emailInput = document.getElementById("email");
 const passwordInput = document.getElementById("password");
 const signUpBtn = document.getElementById("signUpBtn");
@@ -220,6 +220,14 @@ onAuthStateChanged(auth, async (user) => {
       createPollCard.style.display = "none";
       pollsCard.style.display = "none";
       pollsDiv.innerHTML = "";
+      appPage.style.display = "block";
+      return;
+    }
+
+    const hasProfile = await userHasProfile(user.uid);
+
+    if (!hasProfile) {
+      window.location.replace("create-account.html");
       return;
     }
 
@@ -231,16 +239,11 @@ onAuthStateChanged(auth, async (user) => {
     emailInput.style.display = "none";
     passwordInput.style.display = "none";
 
-    const hasProfile = await userHasProfile(user.uid);
-
-    if (!hasProfile) {
-      window.location.href = "create-account.html";
-      return;
-    }
-
     createPollCard.style.display = "block";
     pollsCard.style.display = "block";
-    loadPolls();
+
+    await loadPolls();
+    appPage.style.display = "block";
   } else {
     statusText.textContent = "Not logged in";
     logoutBtn.style.display = "none";
@@ -252,6 +255,7 @@ onAuthStateChanged(auth, async (user) => {
     createPollCard.style.display = "none";
     pollsCard.style.display = "none";
     pollsDiv.innerHTML = "";
+    appPage.style.display = "block";
   }
 });
 

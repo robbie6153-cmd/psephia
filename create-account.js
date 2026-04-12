@@ -1,7 +1,8 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
 import {
   getAuth,
-  onAuthStateChanged
+  onAuthStateChanged,
+  signOut
 } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
 
 import {
@@ -13,7 +14,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
+  apiKey: "AIzaSyB26YRlo3IuiYtFFc3_aweQ8EDe8_DWUd0",
   authDomain: "psephia-9807e.firebaseapp.com",
   projectId: "psephia-9807e",
   storageBucket: "psephia-9807e.firebasestorage.app",
@@ -30,36 +31,55 @@ const surnameInput = document.getElementById("surname");
 const countryInput = document.getElementById("country");
 const usernameInput = document.getElementById("username");
 const saveProfileBtn = document.getElementById("saveProfile");
+const logoutBtn = document.getElementById("logout");
 const profileMessage = document.getElementById("profileMessage");
 
 window.toggleMenu = function () {
   const menu = document.getElementById("dropdownMenu");
-  menu.classList.toggle("show");
+  if (menu) {
+    menu.classList.toggle("show");
+  }
 };
 
 document.addEventListener("click", (event) => {
   const menu = document.getElementById("dropdownMenu");
   const wrapper = document.querySelector(".menu-wrapper");
 
-  if (wrapper && !wrapper.contains(event.target)) {
+  if (menu && wrapper && !wrapper.contains(event.target)) {
     menu.classList.remove("show");
   }
 });
 
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
-    window.location.href = "app.html";
+    window.location.replace("app.html");
     return;
   }
 
-  const userRef = doc(db, "users", user.uid);
-  const userSnap = await getDoc(userRef);
+  if (!user.emailVerified) {
+    await signOut(auth);
+    window.location.replace("app.html");
+    return;
+  }
 
-  if (userSnap.exists()) {
-    const data = userSnap.data();
-    if (data.firstName && data.surname && data.country && data.username) {
-      window.location.href = "app.html";
+  try {
+    const userRef = doc(db, "users", user.uid);
+    const userSnap = await getDoc(userRef);
+
+    if (userSnap.exists()) {
+      const userData = userSnap.data();
+
+      if (
+        userData.firstName &&
+        userData.surname &&
+        userData.country &&
+        userData.username
+      ) {
+        window.location.replace("app.html");
+      }
     }
+  } catch (error) {
+    console.error(error);
   }
 });
 
@@ -129,10 +149,17 @@ saveProfileBtn.addEventListener("click", async () => {
     });
 
     profileMessage.textContent = "Details saved.";
+
     setTimeout(() => {
-      window.location.href = "app.html";
-    }, 700);
+      window.location.replace("app.html");
+    }, 500);
   } catch (error) {
+    console.error(error);
     profileMessage.textContent = error.message || "Could not save details.";
   }
+});
+
+logoutBtn.addEventListener("click", async () => {
+  await signOut(auth);
+  window.location.replace("app.html");
 });

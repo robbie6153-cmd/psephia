@@ -9,6 +9,7 @@
 <body>
   <div class="menu-wrapper">
     <button class="menu-button" onclick="toggleMenu()">☰</button>
+
     <div id="dropdownMenu" class="dropdown-menu">
       <a href="index.html">Home</a>
       <a href="app.html">App</a>
@@ -19,9 +20,11 @@
   </div>
 
   <main class="app-page">
+    <h1>Psephia</h1>
+
     <div class="card">
-      <h2>Create Account</h2>
-      <p>Please complete your details.</p>
+      <h2>Your Details</h2>
+      <p>Please complete your account details.</p>
 
       <input id="firstName" placeholder="First name" />
       <input id="surname" placeholder="Last name" />
@@ -29,14 +32,17 @@
       <select id="country">
         <option value="">Select country</option>
         <option value="United Kingdom">United Kingdom</option>
-        <option value="United States">United States</option>
         <option value="Ireland">Ireland</option>
+        <option value="United States">United States</option>
         <option value="Canada">Canada</option>
         <option value="Australia">Australia</option>
       </select>
 
       <input id="username" placeholder="Username" />
+
       <button id="saveProfile">Save Details</button>
+      <button id="logout">Log Out</button>
+
       <p id="profileMessage"></p>
     </div>
   </main>

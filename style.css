@@ -251,3 +251,6 @@ button {
     padding: 90px 16px 30px;
   }
 }
+.hidden-until-ready {
+  display: none;
+}
