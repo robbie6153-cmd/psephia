@@ -86,10 +86,10 @@
     <button id="create">Create</button>
   </div>
 
-  <div class="card">
-    <h2>Polls</h2>
-    <div id="polls"></div>
-  </div>
+  <div id="pollsCard" class="card" style="display:none;">
+  <h2>Polls</h2>
+  <div id="polls"></div>
+</div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
@@ -148,6 +148,7 @@
     const option2Input = document.getElementById("option2");
     const createBtn = document.getElementById("create");
     const pollsDiv = document.getElementById("polls");
+    const pollsCard = document.getElementById("pollsCard");
 
     const actionCodeSettings = {
       url: "https://psephia.com/",
@@ -197,26 +198,28 @@
       }
     }
 
-    onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        statusText.textContent = "Logged in: " + user.email;
-        logoutBtn.style.display = "inline-block";
-        sendLinkBtn.style.display = "none";
-        emailInput.style.display = "none";
+  onAuthStateChanged(auth, async (user) => {
+  if (user) {
+    statusText.textContent = "Logged in: " + user.email;
+    logoutBtn.style.display = "inline-block";
+    sendLinkBtn.style.display = "none";
+    emailInput.style.display = "none";
+    pollsCard.style.display = "block";
 
-        await checkProfile(user.uid);
-      } else {
-        statusText.textContent = "Not logged in";
-        logoutBtn.style.display = "none";
-        sendLinkBtn.style.display = "inline-block";
-        emailInput.style.display = "block";
+    await checkProfile(user.uid);
+    loadPolls();
+  } else {
+    statusText.textContent = "Not logged in";
+    logoutBtn.style.display = "none";
+    sendLinkBtn.style.display = "inline-block";
+    emailInput.style.display = "block";
 
-        yourDetailsCard.style.display = "none";
-        createPollCard.style.display = "none";
-      }
-
-      loadPolls();
-    });
+    yourDetailsCard.style.display = "none";
+    createPollCard.style.display = "none";
+    pollsCard.style.display = "none";
+    pollsDiv.innerHTML = "";
+  }
+});
 
     async function checkProfile(uid) {
       try {
