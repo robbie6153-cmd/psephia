@@ -150,12 +150,12 @@
     const pollsDiv = document.getElementById("polls");
     const pollsCard = document.getElementById("pollsCard");
 
-    const actionCodeSettings = {
-      url: "https://psephia.com/",
-      handleCodeInApp: true
-    };
+   const actionCodeSettings = {
+  url: window.location.origin + window.location.pathname,
+  handleCodeInApp: true
+};
 
-   sendLinkBtn.addEventListener("click", async () => {
+sendLinkBtn.addEventListener("click", async () => {
   const email = emailInput.value.trim();
 
   if (!email) {
@@ -171,13 +171,13 @@
     window.localStorage.setItem("emailForSignIn", email);
 
     loginMessage.innerHTML = `
-      We have sent you an email sign-in link.<br><br>
-      This may take up to a minute to arrive.<br>
-      Please also check your junk or spam folder.
+      We have sent you an email link so you can sign in or create your account.<br><br>
+      It may take up to a minute to arrive.<br>
+      Please check your junk or spam folder if you do not see it.
     `;
   } catch (error) {
-    loginMessage.textContent = "Error: " + error.message;
     console.error(error);
+    loginMessage.textContent = "We could not send the email link. Please try again.";
   } finally {
     sendLinkBtn.disabled = false;
   }
