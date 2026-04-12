@@ -4,53 +4,50 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Psephia</title>
-
-  <style>
-    body {
-      margin: 0;
-      font-family: Georgia, serif;
-      background: url("background.jpg") center/cover no-repeat;
-      height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      text-align: center;
-    }
-
-    .overlay {
-      background: rgba(0,0,0,0.6);
-      padding: 40px;
-      border-radius: 12px;
-    }
-
-    h1 {
-      font-size: 48px;
-      margin-bottom: 10px;
-    }
-
-    p {
-      font-size: 18px;
-      margin-bottom: 30px;
-    }
-
-    a.button {
-      background: white;
-      color: black;
-      padding: 12px 20px;
-      text-decoration: none;
-      border-radius: 8px;
-      font-weight: bold;
-    }
-  </style>
+  <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
-  <div class="overlay">
-    <h1>Psephia</h1>
-    <p>Vote. Decide. Influence.</p>
 
-    <a href="app.html" class="button">Enter Psephia</a>
+  <div class="menu-wrapper">
+    <button class="menu-button" onclick="toggleMenu()">☰</button>
+
+    <div id="dropdownMenu" class="dropdown-menu">
+      <a href="index.html">Home</a>
+      <a href="community-guidelines.html">Community Guidelines</a>
+      <a href="profile.html">My Profile</a>
+      <a href="login.html">Log In</a>
+      <a href="signup.html">Sign Up</a>
+      <a href="privacy.html">Privacy Policy</a>
+      <a href="terms.html">Terms of Use</a>
+    </div>
   </div>
+
+  <img src="homepage.jpg" alt="Psephia homepage" class="home-image">
+
+  <section class="auth-section">
+    <div class="auth-container">
+      <h2>Join Psephia</h2>
+      <button class="auth-btn primary">Sign Up</button>
+      <button class="auth-btn secondary">Log In</button>
+      <div class="divider">or</div>
+      <button class="auth-btn apple">Sign in with Apple</button>
+      <button class="auth-btn google">Sign in with Google</button>
+    </div>
+  </section>
+
+  <section class="intro-section">
+    <div class="intro-container">
+      <h2>About Psephia</h2>
+      <p>Psephia is a new social media website by RobTechUK, inspired by the Ancient Greek word <em>psephia</em>, meaning pebble, which was once used by people to vote.</p>
+      <p>The site allows users to submit questions for other users to vote on, or to vote on topics submitted by others.</p>
+      <p>A post can remain open for up to 7 days, and once voting has closed, the result will be revealed. Users will not be able to see how others have voted until the voting period has ended.</p>
+      <p>Once a vote has ended, comments will be allowed on the post so users can discuss the result.</p>
+      <h3>General Rules</h3>
+      <p>We want to keep debate on Psephia civil, respectful, and lawful. RobTechUK may remove posts or comments that incite violence, promote hatred, harass other users, encourage illegal activity, or otherwise violate UK law.</p>
+      <p>Repeated breaches of these rules may result in content removal or restricted access to the site. For further information, please see our Community Guidelines.</p>
+    </div>
+  </section>
+
+  <script src="script.js"></script>
 </body>
 </html>
