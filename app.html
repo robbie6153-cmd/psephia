@@ -4,7 +4,17 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Psephia App</title>
+<div class="menu-wrapper">
+  <button class="menu-button" onclick="toggleMenu()">☰</button>
 
+  <div id="dropdownMenu" class="dropdown-menu">
+    <a href="index.html">Home</a>
+    <a href="profile.html">My Profile</a>
+    <a href="community-guidelines.html">Community Guidelines</a>
+    <a href="privacy.html">Privacy Policy</a>
+    <a href="terms.html">Terms of Use</a>
+  </div>
+</div>
   <style>
     body {
       font-family: Georgia, serif;
@@ -175,12 +185,12 @@ sendLinkBtn.addEventListener("click", async () => {
       It may take up to a minute to arrive.<br>
       Please check your junk or spam folder if you do not see it.
     `;
-  } catch (error) {
-    console.error(error);
-    loginMessage.textContent = "We could not send the email link. Please try again.";
-  } finally {
-    sendLinkBtn.disabled = false;
-  }
+} catch (error) {
+  console.error("Email link error:", error);
+  loginMessage.textContent = `Could not send email link: ${error.code || ""} ${error.message || ""}`;
+} finally {
+  sendLinkBtn.disabled = false;
+}
 });
 
     logoutBtn.addEventListener("click", async () => {
