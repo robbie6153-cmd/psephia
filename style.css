@@ -185,3 +185,69 @@ body {
     font-size: 1.4rem;
   }
 }
+.app-page {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 100px 20px 40px;
+  box-sizing: border-box;
+}
+
+.card {
+  background: white;
+  padding: 16px;
+  margin-bottom: 16px;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+}
+
+.card h2 {
+  margin-top: 0;
+}
+
+input,
+button {
+  padding: 10px;
+  margin: 6px 0;
+  font-size: 16px;
+  box-sizing: border-box;
+  font-family: Georgia, serif;
+}
+
+input {
+  width: 100%;
+  max-width: 400px;
+  display: block;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background: white;
+  color: #111;
+}
+
+button {
+  border: 1px solid #ccc;
+  border-radius: 999px;
+  background: #efefef;
+  color: #111;
+  cursor: pointer;
+}
+
+.poll {
+  border: 1px solid #ccc;
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  background: #fff;
+}
+
+#status,
+#loginMessage,
+#profileMessage {
+  margin-top: 10px;
+  line-height: 1.5;
+}
+
+@media (max-width: 768px) {
+  .app-page {
+    padding: 90px 16px 30px;
+  }
+}
