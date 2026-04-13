@@ -40,25 +40,35 @@
     </div>
 
     <!-- Create Poll -->
-    <div id="createPoll" class="card" style="display:none;">
-      <h2>Create Poll</h2>
+   <div id="createPoll" class="card" style="display:none;">
+  <h2>Create Poll</h2>
 
-      <label><strong>Select category</strong></label>
-      <select id="categoryInput">
-        <option value="Politics">Politics</option>
-        <option value="Sport">Sport</option>
-        <option value="Food and Drink">Food and Drink</option>
-        <option value="TV and Entertainment">TV and Entertainment</option>
-        <option value="Other">Other</option>
-        <option value="Private">Private</option>
-      </select>
+  <label><strong>Select category</strong></label>
+  <select id="categoryInput">
+    <option value="Politics">Politics</option>
+    <option value="Sport">Sport</option>
+    <option value="Food and Drink">Food and Drink</option>
+    <option value="TV and Entertainment">TV and Entertainment</option>
+    <option value="Other">Other</option>
+    <option value="Private">Private</option>
+  </select>
 
-      <input id="question" placeholder="Question" />
-      <input id="option1" placeholder="Option 1" />
-      <input id="option2" placeholder="Option 2" />
-      <button id="create">Create</button>
-    </div>
+  <label for="pollDuration">How long do you want this poll to be posted?</label>
+  <select id="pollDuration">
+    <option value="1">1 day</option>
+    <option value="2">2 days</option>
+    <option value="3">3 days</option>
+    <option value="4">4 days</option>
+    <option value="5">5 days</option>
+    <option value="6">6 days</option>
+    <option value="7">7 days</option>
+  </select>
 
+  <input id="question" placeholder="Question" />
+  <input id="option1" placeholder="Option 1" />
+  <input id="option2" placeholder="Option 2" />
+  <button id="create">Create</button>
+</div>
     <!-- Polls Section -->
     <div id="pollsCard" class="card" style="display:none;">
       <h2>Polls</h2>

@@ -44,17 +44,22 @@ const forgotPasswordBtn = document.getElementById("forgotPasswordBtn");
 const logoutBtn = document.getElementById("logout");
 const statusText = document.getElementById("status");
 const loginMessage = document.getElementById("loginMessage");
+
 const categoryInput = document.getElementById("categoryInput");
+const pollDurationInput = document.getElementById("pollDuration");
 const createPollCard = document.getElementById("createPoll");
 const questionInput = document.getElementById("question");
 const option1Input = document.getElementById("option1");
 const option2Input = document.getElementById("option2");
 const createBtn = document.getElementById("create");
+
 const pollsDiv = document.getElementById("polls");
 const pollsCard = document.getElementById("pollsCard");
 const voteMessage = document.getElementById("voteMessage");
 const categoryTabs = document.querySelectorAll(".category-tab");
+
 let selectedCategory = "Politics";
+let countdownInterval = null;
 
 window.toggleMenu = function () {
   const menu = document.getElementById("dropdownMenu");
