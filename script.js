@@ -19,8 +19,7 @@ import {
   orderBy,
   doc,
   getDoc,
-  updateDoc,
-  arrayUnion
+  updateDoc
 } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -239,6 +238,7 @@ onAuthStateChanged(auth, async (user) => {
       createPollCard.style.display = "none";
       pollsCard.style.display = "none";
       pollsDiv.innerHTML = "";
+      hideVoteMessage();
       appPage.style.display = "block";
       return;
     }
@@ -358,59 +358,61 @@ async function loadPolls() {
       return;
     }
 
-   const currentUid = auth.currentUser?.uid || null;
+    const currentUid = auth.currentUser?.uid || null;
 
-snap.forEach((docItem) => {
-  const p = docItem.data();
-  const options = Array.isArray(p.options) ? p.options.slice(0, 2) : [];
-  const selectedOption =
-    currentUid && p.userVotes && typeof p.userVotes === "object"
-      ? p.userVotes[currentUid] || null
-      : null;
+    snap.forEach((docItem) => {
+      const p = docItem.data();
+      const options = Array.isArray(p.options) ? p.options.slice(0, 2) : [];
+      const selectedOption =
+        currentUid && p.userVotes && typeof p.userVotes === "object"
+          ? p.userVotes[currentUid] || null
+          : null;
 
-  const optionRows = options.map((option) => {
-    const isSelected = selectedOption === option ? " selected" : "";
-    return `
-      <div class="vote-option${isSelected}" data-poll-id="${docItem.id}" data-option="${encodeURIComponent(option)}">
-        <span class="vote-tick">✔</span>
-        <span class="vote-text">${escapeHtml(option)}</span>
-      </div>
-    `;
-  }).join("");
+      const optionRows = options.map((option) => {
+        const isSelected = selectedOption === option;
+        return `
+          <div
+            class="vote-option${isSelected ? " selected" : ""}"
+            data-poll-id="${docItem.id}"
+            data-option="${encodeURIComponent(option)}"
+          >
+            <span class="vote-tick">${isSelected ? "✔" : "✓"}</span>
+            <span class="vote-text">${escapeHtml(option)}</span>
+          </div>
+        `;
+      }).join("");
 
-  pollsDiv.innerHTML += `
-    <div class="poll">
-      <strong>${escapeHtml(p.question || "")}</strong><br>
-      ${optionRows}
-    </div>
-  `;
-});
-
-    attachVoteHandlers();
+      pollsDiv.innerHTML += `
+        <div class="poll">
+          <strong>${escapeHtml(p.question || "")}</strong><br>
+          ${optionRows}
+        </div>
+      `;
+    });
   } catch (error) {
     console.error("Load polls error:", error);
     pollsDiv.innerHTML = "<p>Could not load polls.</p>";
   }
 }
 
-function attachVoteHandlers() {
-  const voteOptions = pollsDiv.querySelectorAll(".vote-option");
+pollsDiv.addEventListener("click", async (event) => {
+  const optionEl = event.target.closest(".vote-option");
 
-  voteOptions.forEach((optionEl) => {
-    optionEl.addEventListener("click", async () => {
-      const pollId = optionEl.dataset.pollId;
-      const encodedOption = optionEl.dataset.option;
+  if (!optionEl || !pollsDiv.contains(optionEl)) {
+    return;
+  }
 
-      if (!pollId || typeof encodedOption !== "string") {
-        showVoteMessage("There was a problem reading that vote option.", true);
-        return;
-      }
+  const pollId = optionEl.dataset.pollId;
+  const encodedOption = optionEl.dataset.option;
 
-      const option = decodeURIComponent(encodedOption);
-      await voteOnPoll(pollId, option);
-    });
-  });
-}
+  if (!pollId || typeof encodedOption !== "string") {
+    showVoteMessage("There was a problem reading that vote option.", true);
+    return;
+  }
+
+  const option = decodeURIComponent(encodedOption);
+  await voteOnPoll(pollId, option);
+});
 
 async function voteOnPoll(pollId, option) {
   const user = auth.currentUser;
@@ -430,18 +432,20 @@ async function voteOnPoll(pollId, option) {
     }
 
     const selectedPoll = pollSnap.data();
+
     const userVotes =
       selectedPoll.userVotes && typeof selectedPoll.userVotes === "object"
         ? { ...selectedPoll.userVotes }
         : {};
+
     const votes =
       selectedPoll.votes && typeof selectedPoll.votes === "object"
         ? { ...selectedPoll.votes }
         : {};
+
     const votedBy =
       Array.isArray(selectedPoll.votedBy) ? [...selectedPoll.votedBy] : [];
 
-    // Only block if THIS poll already has a vote from this user
     if (userVotes[user.uid]) {
       showVoteMessage("You have already voted on this poll. Please try a new one.", true);
       await loadPolls();
@@ -456,12 +460,12 @@ async function voteOnPoll(pollId, option) {
     }
 
     await updateDoc(pollRef, {
-      votes,
-      votedBy,
-      userVotes
+      votes: votes,
+      votedBy: votedBy,
+      userVotes: userVotes
     });
 
-    showVoteMessage("Your vote has been received.");
+    showVoteMessage("Your vote has been received.", false);
     await loadPolls();
   } catch (error) {
     console.error("Voting error:", error);

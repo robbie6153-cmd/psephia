@@ -275,6 +275,12 @@ button {
   color: #cfcfcf;
   width: 20px;
   text-align: center;
+  font-weight: bold;
+}
+
+.vote-option.selected {
+  border: 2px solid red;
+  background: #fff5f5;
 }
 
 .vote-option.selected .vote-tick {
