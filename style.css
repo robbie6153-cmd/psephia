@@ -296,3 +296,24 @@ button {
   margin: 4px 0 10px;
   font-style: italic;
 }
+.category-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 16px 0;
+}
+
+.category-tab {
+  padding: 10px 14px;
+  border: 1px solid #ccc;
+  background: white;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.category-tab.active {
+  font-weight: bold;
+  border: 2px solid #333;
+  background: #f0f0f0;
+}
