@@ -279,7 +279,7 @@ button {
 }
 
 .vote-option.selected {
-  border: 2px solid red;
+  border: 2px solid rgb(71, 216, 125);
   background: #fff5f5;
 }
 
