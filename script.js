@@ -339,15 +339,16 @@ async function loadPolls() {
 
     snap.forEach((docItem) => {
       const p = docItem.data();
-
+const currentUid = auth.currentUser?.uid;
+const selectedOption = currentUid && p.userVotes ? p.userVotes[currentUid] : null;
  pollsDiv.innerHTML += `
   <div class="poll">
     <strong>${escapeHtml(p.question || "")}</strong><br>
 
-    <div class="vote-option" onclick="handleVoteClick(this, '${docItem.id}', '${escapeHtml(p.options?.[0] || "")}')">
-      <span class="vote-tick">✔</span>
-      <span class="vote-text">${escapeHtml(p.options?.[0] || "")}</span>
-    </div>
+    <div class="vote-option ${selectedOption === p.options?.[1] ? "selected" : ""}" onclick="handleVoteClick(this, '${docItem.id}', '${escapeHtml(p.options?.[1] || "")}')">
+  <span class="vote-tick">✔</span>
+  <span class="vote-text">${escapeHtml(p.options?.[1] || "")}</span>
+</div>
 
     <div class="vote-option" onclick="handleVoteClick(this, '${docItem.id}', '${escapeHtml(p.options?.[1] || "")}')">
       <span class="vote-tick">✔</span>
@@ -397,13 +398,15 @@ window.voteOnPoll = async function (pollId, option) {
       return;
     }
 
-    await updateDoc(pollRef, {
-      [`votes.${option}`]: increment(1),
-      votedBy: arrayUnion(user.uid)
-    });
+ await updateDoc(pollRef, {
+  [`votes.${option}`]: increment(1),
+  votedBy: arrayUnion(user.uid),
+  [`userVotes.${user.uid}`]: option
+});
 
-    voteMessage.style.display = "none";
-    await loadPolls();
+    voteMessage.textContent = "Your vote has been received.";
+voteMessage.style.display = "block";
+await loadPolls();
   } catch (error) {
     console.error("Voting error:", error);
     voteMessage.textContent = "There was a problem submitting your vote.";
