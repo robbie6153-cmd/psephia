@@ -67,6 +67,7 @@ window.toggleMenu = function () {
     menu.classList.toggle("show");
   }
 };
+
 categoryTabs.forEach((tab) => {
   tab.addEventListener("click", () => {
     const category = tab.dataset.category;
@@ -78,13 +79,13 @@ categoryTabs.forEach((tab) => {
 
     selectedCategory = category;
 
-    // Update active tab styling
     categoryTabs.forEach((t) => t.classList.remove("active"));
     tab.classList.add("active");
 
     loadPolls();
   });
 });
+
 document.addEventListener("click", (event) => {
   const menu = document.getElementById("dropdownMenu");
   const wrapper = document.querySelector(".menu-wrapper");
@@ -108,6 +109,101 @@ function hideVoteMessage() {
   if (!voteMessage) return;
   voteMessage.style.display = "none";
   voteMessage.textContent = "";
+}
+
+function escapeHtml(text) {
+  const div = document.createElement("div");
+  div.textContent = text ?? "";
+  return div.innerHTML;
+}
+
+function getEndsAtDate(pollData) {
+  if (!pollData?.endsAt) return null;
+
+  if (typeof pollData.endsAt.toDate === "function") {
+    return pollData.endsAt.toDate();
+  }
+
+  const date = new Date(pollData.endsAt);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function hasPollEnded(pollData) {
+  const endsAtDate = getEndsAtDate(pollData);
+  if (!endsAtDate) return false;
+  return Date.now() >= endsAtDate.getTime();
+}
+
+function formatTimeRemainingFromMs(ms) {
+  if (ms <= 0) {
+    return "Voting has ended";
+  }
+
+  const totalSeconds = Math.floor(ms / 1000);
+  const days = Math.floor(totalSeconds / 86400);
+  const hours = Math.floor((totalSeconds % 86400) / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  return `Voting on this ends in ${days} day${days !== 1 ? "s" : ""}, ${hours} hour${hours !== 1 ? "s" : ""}, ${minutes} minute${minutes !== 1 ? "s" : ""} and ${seconds} second${seconds !== 1 ? "s" : ""}`;
+}
+
+function formatTimeRemaining(endsAtDate) {
+  return formatTimeRemainingFromMs(endsAtDate.getTime() - Date.now());
+}
+
+function getPollResultsHtml(pollData) {
+  const options = Array.isArray(pollData.options) ? pollData.options : [];
+  const votes = pollData.votes && typeof pollData.votes === "object" ? pollData.votes : {};
+
+  let totalVotes = 0;
+  options.forEach((option) => {
+    totalVotes += typeof votes[option] === "number" ? votes[option] : 0;
+  });
+
+  if (options.length === 0) {
+    return `<div class="poll-results"><p>No options available.</p></div>`;
+  }
+
+  if (totalVotes === 0) {
+    return `
+      <div class="poll-results">
+        ${options.map((option) => `<p>${escapeHtml(option)}: 0%</p>`).join("")}
+      </div>
+    `;
+  }
+
+  return `
+    <div class="poll-results">
+      ${options.map((option) => {
+        const count = typeof votes[option] === "number" ? votes[option] : 0;
+        const percent = Math.round((count / totalVotes) * 100);
+        return `<p>${escapeHtml(option)}: ${percent}%</p>`;
+      }).join("")}
+    </div>
+  `;
+}
+
+function startCountdownUpdater() {
+  if (countdownInterval) {
+    clearInterval(countdownInterval);
+  }
+
+  countdownInterval = setInterval(() => {
+    const timerEls = document.querySelectorAll(".poll-timer[data-end-time]");
+
+    timerEls.forEach((el) => {
+      const endTime = Number(el.dataset.endTime);
+      if (!endTime) return;
+
+      const remaining = endTime - Date.now();
+      el.textContent = formatTimeRemainingFromMs(remaining);
+
+      if (remaining <= 0) {
+        loadPolls();
+      }
+    });
+  }, 1000);
 }
 
 signUpBtn.addEventListener("click", async () => {
@@ -335,49 +431,61 @@ createBtn.addEventListener("click", async () => {
   }
 
   const question = questionInput.value.trim();
-const option1 = option1Input.value.trim();
-const option2 = option2Input.value.trim();
-const category = categoryInput.value;
+  const option1 = option1Input.value.trim();
+  const option2 = option2Input.value.trim();
+  const category = categoryInput.value;
+  const durationDays = parseInt(pollDurationInput.value, 10);
 
-if (!question || !option1 || !option2) {
-  alert("Please complete the question and both options.");
-  return;
-}
+  if (!question || !option1 || !option2) {
+    alert("Please complete the question and both options.");
+    return;
+  }
 
-if (category === "Private") {
-  alert("This function is not yet available");
-  return;
-}
+  if (category === "Private") {
+    alert("This function is not yet available");
+    return;
+  }
 
-const votesObject = {};
-votesObject[option1] = 0;
-votesObject[option2] = 0;
+  if (!Number.isInteger(durationDays) || durationDays < 1 || durationDays > 7) {
+    alert("Please choose a poll duration between 1 and 7 days.");
+    return;
+  }
+
+  const now = new Date();
+  const endsAt = new Date(now.getTime() + durationDays * 24 * 60 * 60 * 1000);
+
+  const votesObject = {};
+  votesObject[option1] = 0;
+  votesObject[option2] = 0;
 
   try {
     const userRef = doc(db, "users", user.uid);
-const userSnap = await getDoc(userRef);
+    const userSnap = await getDoc(userRef);
 
-let username = "Anonymous";
+    let username = "Anonymous";
 
-if (userSnap.exists()) {
-  username = userSnap.data().username || "Anonymous";
-}
+    if (userSnap.exists()) {
+      username = userSnap.data().username || "Anonymous";
+    }
 
-await addDoc(collection(db, "polls"), {
-  question,
-  options: [option1, option2],
-  category,
-  createdAt: Timestamp.now(),
-  createdBy: user.uid,
-  createdByName: username,
-  votes: votesObject,
-  votedBy: [],
-  userVotes: {}
-});
+    await addDoc(collection(db, "polls"), {
+      question: question,
+      options: [option1, option2],
+      category: category,
+      createdAt: Timestamp.now(),
+      durationDays: durationDays,
+      endsAt: Timestamp.fromDate(endsAt),
+      createdBy: user.uid,
+      createdByName: username,
+      votes: votesObject,
+      votedBy: [],
+      userVotes: {}
+    });
 
     questionInput.value = "";
     option1Input.value = "";
     option2Input.value = "";
+    pollDurationInput.value = "1";
 
     hideVoteMessage();
     await loadPolls();
@@ -400,38 +508,70 @@ async function loadPolls() {
     }
 
     const currentUid = auth.currentUser?.uid || null;
+    let hasVisiblePolls = false;
 
     snap.forEach((docItem) => {
       const p = docItem.data();
-      if ((p.category || "Other") !== selectedCategory) return;
+
+      if ((p.category || "Other") !== selectedCategory) {
+        return;
+      }
+
+      hasVisiblePolls = true;
+
       const options = Array.isArray(p.options) ? p.options.slice(0, 2) : [];
       const selectedOption =
         currentUid && p.userVotes && typeof p.userVotes === "object"
           ? p.userVotes[currentUid] || null
           : null;
 
-      const optionRows = options.map((option) => {
-        const isSelected = selectedOption === option;
-        return `
-          <div
-            class="vote-option${isSelected ? " selected" : ""}"
-            data-poll-id="${docItem.id}"
-            data-option="${encodeURIComponent(option)}"
-          >
-            <span class="vote-tick">${isSelected ? "✔" : "✓"}</span>
-            <span class="vote-text">${escapeHtml(option)}</span>
-          </div>
+      const endsAtDate = getEndsAtDate(p);
+      const pollEnded = hasPollEnded(p);
+
+      let timerHtml = `<p class="poll-timer">No end time set</p>`;
+      if (endsAtDate) {
+        timerHtml = `
+          <p class="poll-timer" data-end-time="${endsAtDate.getTime()}">
+            ${escapeHtml(formatTimeRemaining(endsAtDate))}
+          </p>
         `;
-      }).join("");
+      }
+
+      let contentHtml = "";
+
+      if (pollEnded) {
+        contentHtml = getPollResultsHtml(p);
+      } else {
+        contentHtml = options.map((option) => {
+          const isSelected = selectedOption === option;
+          return `
+            <div
+              class="vote-option${isSelected ? " selected" : ""}"
+              data-poll-id="${docItem.id}"
+              data-option="${encodeURIComponent(option)}"
+            >
+              <span class="vote-tick">${isSelected ? "✔" : "✓"}</span>
+              <span class="vote-text">${escapeHtml(option)}</span>
+            </div>
+          `;
+        }).join("");
+      }
 
       pollsDiv.innerHTML += `
         <div class="poll">
-         <strong>${escapeHtml(p.question || "")}</strong><br>
-<p class="poll-author">Poll created by: ${p.createdByName || "Anonymous"}</p>
-${optionRows}
+          <strong>${escapeHtml(p.question || "")}</strong><br>
+          <p class="poll-author">Poll created by: ${escapeHtml(p.createdByName || "Anonymous")}</p>
+          ${timerHtml}
+          ${contentHtml}
         </div>
       `;
     });
+
+    if (!hasVisiblePolls) {
+      pollsDiv.innerHTML = "<p>No polls in this category yet.</p>";
+    }
+
+    startCountdownUpdater();
   } catch (error) {
     console.error("Load polls error:", error);
     pollsDiv.innerHTML = "<p>Could not load polls.</p>";
@@ -476,6 +616,12 @@ async function voteOnPoll(pollId, option) {
 
     const selectedPoll = pollSnap.data();
 
+    if (hasPollEnded(selectedPoll)) {
+      showVoteMessage("Voting on this poll has ended.", true);
+      await loadPolls();
+      return;
+    }
+
     const userVotes =
       selectedPoll.userVotes && typeof selectedPoll.userVotes === "object"
         ? { ...selectedPoll.userVotes }
@@ -514,10 +660,4 @@ async function voteOnPoll(pollId, option) {
     console.error("Voting error:", error);
     showVoteMessage("There was a problem submitting your vote.", true);
   }
-}
-
-function escapeHtml(text) {
-  const div = document.createElement("div");
-  div.textContent = text;
-  return div.innerHTML;
 }

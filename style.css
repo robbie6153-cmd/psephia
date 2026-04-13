@@ -317,3 +317,38 @@ button {
   border: 2px solid #333;
   background: #f0f0f0;
 }
+select {
+  width: 100%;
+  max-width: 400px;
+  padding: 10px;
+  margin: 8px 0 14px 0;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  box-sizing: border-box;
+  background: white;
+}
+
+.poll-timer {
+  font-size: 14px;
+  color: #666;
+  margin: 10px 0 12px 0;
+  line-height: 1.4;
+}
+
+.poll-results {
+  margin-top: 12px;
+  padding-top: 6px;
+}
+
+.poll-results p {
+  margin: 6px 0;
+  font-weight: bold;
+  color: #222;
+}
+
+.poll-author {
+  margin: 8px 0 10px 0;
+  font-size: 14px;
+  color: #555;
+}
