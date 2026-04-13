@@ -20,39 +20,64 @@
     </div>
   </div>
 
-  <main class="app-page hidden-until-ready"></main>
+  <main class="app-page hidden-until-ready">
     <h1>Psephia</h1>
 
+    <!-- Account -->
     <div class="card">
-  <h2>Account</h2>
+      <h2>Account</h2>
 
-  <input id="email" type="email" placeholder="Email" />
-  <input id="password" type="password" placeholder="Password" />
+      <input id="email" type="email" placeholder="Email" />
+      <input id="password" type="password" placeholder="Password" />
 
-  <button id="signUpBtn">Create Account</button>
-  <button id="loginBtn">Log In</button>
-  <button id="forgotPasswordBtn">Forgot Password?</button>
-  <button id="logout" style="display:none;">Log Out</button>
+      <button id="signUpBtn">Create Account</button>
+      <button id="loginBtn">Log In</button>
+      <button id="forgotPasswordBtn">Forgot Password?</button>
+      <button id="logout" style="display:none;">Log Out</button>
 
-  <p id="status">Not logged in</p>
-  <p id="loginMessage"></p>
-</div>
+      <p id="status">Not logged in</p>
+      <p id="loginMessage"></p>
+    </div>
 
+    <!-- Create Poll -->
     <div id="createPoll" class="card" style="display:none;">
       <h2>Create Poll</h2>
+
+      <label><strong>Select category</strong></label>
+      <select id="categoryInput">
+        <option value="Politics">Politics</option>
+        <option value="Sport">Sport</option>
+        <option value="Food and Drink">Food and Drink</option>
+        <option value="TV and Entertainment">TV and Entertainment</option>
+        <option value="Other">Other</option>
+        <option value="Private">Private</option>
+      </select>
+
       <input id="question" placeholder="Question" />
       <input id="option1" placeholder="Option 1" />
       <input id="option2" placeholder="Option 2" />
       <button id="create">Create</button>
     </div>
 
+    <!-- Polls Section -->
     <div id="pollsCard" class="card" style="display:none;">
-  <h2>Polls</h2>
+      <h2>Polls</h2>
 
-  <div id="voteMessage" style="display:none; margin-bottom:16px; padding:12px; background:#fff3f3; color:#b00020; border:1px solid #e0b4b4; border-radius:8px;"></div>
+      <!-- Category Tabs -->
+      <div class="category-tabs">
+        <button class="category-tab active" data-category="Politics">Politics</button>
+        <button class="category-tab" data-category="Sport">Sport</button>
+        <button class="category-tab" data-category="Food and Drink">Food and Drink</button>
+        <button class="category-tab" data-category="TV and Entertainment">TV and Entertainment</button>
+        <button class="category-tab" data-category="Other">Other</button>
+        <button class="category-tab" data-category="Private">Private</button>
+      </div>
 
-  <div id="polls"></div>
-</div>
+      <div id="voteMessage" style="display:none; margin-bottom:16px; padding:12px;"></div>
+
+      <div id="polls"></div>
+    </div>
+
   </main>
 
   <script type="module" src="script.js"></script>

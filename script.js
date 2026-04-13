@@ -44,7 +44,7 @@ const forgotPasswordBtn = document.getElementById("forgotPasswordBtn");
 const logoutBtn = document.getElementById("logout");
 const statusText = document.getElementById("status");
 const loginMessage = document.getElementById("loginMessage");
-
+const categoryInput = document.getElementById("categoryInput");
 const createPollCard = document.getElementById("createPoll");
 const questionInput = document.getElementById("question");
 const option1Input = document.getElementById("option1");
@@ -53,6 +53,8 @@ const createBtn = document.getElementById("create");
 const pollsDiv = document.getElementById("polls");
 const pollsCard = document.getElementById("pollsCard");
 const voteMessage = document.getElementById("voteMessage");
+const categoryTabs = document.querySelectorAll(".category-tab");
+let selectedCategory = "Politics";
 
 window.toggleMenu = function () {
   const menu = document.getElementById("dropdownMenu");
@@ -60,7 +62,24 @@ window.toggleMenu = function () {
     menu.classList.toggle("show");
   }
 };
+categoryTabs.forEach((tab) => {
+  tab.addEventListener("click", () => {
+    const category = tab.dataset.category;
 
+    if (category === "Private") {
+      alert("This function is not yet available");
+      return;
+    }
+
+    selectedCategory = category;
+
+    // Update active tab styling
+    categoryTabs.forEach((t) => t.classList.remove("active"));
+    tab.classList.add("active");
+
+    loadPolls();
+  });
+});
 document.addEventListener("click", (event) => {
   const menu = document.getElementById("dropdownMenu");
   const wrapper = document.querySelector(".menu-wrapper");
@@ -311,17 +330,23 @@ createBtn.addEventListener("click", async () => {
   }
 
   const question = questionInput.value.trim();
-  const option1 = option1Input.value.trim();
-  const option2 = option2Input.value.trim();
+const option1 = option1Input.value.trim();
+const option2 = option2Input.value.trim();
+const category = categoryInput.value;
 
-  if (!question || !option1 || !option2) {
-    alert("Please complete the question and both options.");
-    return;
-  }
+if (!question || !option1 || !option2) {
+  alert("Please complete the question and both options.");
+  return;
+}
 
-  const votesObject = {};
-  votesObject[option1] = 0;
-  votesObject[option2] = 0;
+if (category === "Private") {
+  alert("This function is not yet available");
+  return;
+}
+
+const votesObject = {};
+votesObject[option1] = 0;
+votesObject[option2] = 0;
 
   try {
     const userRef = doc(db, "users", user.uid);
@@ -336,6 +361,7 @@ if (userSnap.exists()) {
 await addDoc(collection(db, "polls"), {
   question,
   options: [option1, option2],
+  category,
   createdAt: Timestamp.now(),
   createdBy: user.uid,
   createdByName: username,
@@ -372,6 +398,7 @@ async function loadPolls() {
 
     snap.forEach((docItem) => {
       const p = docItem.data();
+      if ((p.category || "Other") !== selectedCategory) return;
       const options = Array.isArray(p.options) ? p.options.slice(0, 2) : [];
       const selectedOption =
         currentUid && p.userVotes && typeof p.userVotes === "object"
