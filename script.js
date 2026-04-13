@@ -358,33 +358,33 @@ async function loadPolls() {
       return;
     }
 
-    const currentUid = auth.currentUser?.uid || null;
+   const currentUid = auth.currentUser?.uid || null;
 
-    snap.forEach((docItem) => {
-      const p = docItem.data();
-      const options = Array.isArray(p.options) ? p.options.slice(0, 2) : [];
-      const selectedOption =
-        currentUid && p.userVotes && typeof p.userVotes === "object"
-          ? p.userVotes[currentUid] || null
-          : null;
+snap.forEach((docItem) => {
+  const p = docItem.data();
+  const options = Array.isArray(p.options) ? p.options.slice(0, 2) : [];
+  const selectedOption =
+    currentUid && p.userVotes && typeof p.userVotes === "object"
+      ? p.userVotes[currentUid] || null
+      : null;
 
-      const optionRows = options.map((option) => {
-        const isSelected = selectedOption === option ? " selected" : "";
-        return `
-          <div class="vote-option${isSelected}" data-poll-id="${docItem.id}" data-option="${encodeURIComponent(option)}">
-            <span class="vote-tick">✔</span>
-            <span class="vote-text">${escapeHtml(option)}</span>
-          </div>
-        `;
-      }).join("");
+  const optionRows = options.map((option) => {
+    const isSelected = selectedOption === option ? " selected" : "";
+    return `
+      <div class="vote-option${isSelected}" data-poll-id="${docItem.id}" data-option="${encodeURIComponent(option)}">
+        <span class="vote-tick">✔</span>
+        <span class="vote-text">${escapeHtml(option)}</span>
+      </div>
+    `;
+  }).join("");
 
-      pollsDiv.innerHTML += `
-        <div class="poll">
-          <strong>${escapeHtml(p.question || "")}</strong><br>
-          ${optionRows}
-        </div>
-      `;
-    });
+  pollsDiv.innerHTML += `
+    <div class="poll">
+      <strong>${escapeHtml(p.question || "")}</strong><br>
+      ${optionRows}
+    </div>
+  `;
+});
 
     attachVoteHandlers();
   } catch (error) {
@@ -430,7 +430,6 @@ async function voteOnPoll(pollId, option) {
     }
 
     const selectedPoll = pollSnap.data();
-    const votedBy = Array.isArray(selectedPoll.votedBy) ? selectedPoll.votedBy : [];
     const userVotes =
       selectedPoll.userVotes && typeof selectedPoll.userVotes === "object"
         ? { ...selectedPoll.userVotes }
@@ -439,8 +438,11 @@ async function voteOnPoll(pollId, option) {
       selectedPoll.votes && typeof selectedPoll.votes === "object"
         ? { ...selectedPoll.votes }
         : {};
+    const votedBy =
+      Array.isArray(selectedPoll.votedBy) ? [...selectedPoll.votedBy] : [];
 
-    if (votedBy.includes(user.uid)) {
+    // Only block if THIS poll already has a vote from this user
+    if (userVotes[user.uid]) {
       showVoteMessage("You have already voted on this poll. Please try a new one.", true);
       await loadPolls();
       return;
@@ -449,9 +451,13 @@ async function voteOnPoll(pollId, option) {
     votes[option] = typeof votes[option] === "number" ? votes[option] + 1 : 1;
     userVotes[user.uid] = option;
 
+    if (!votedBy.includes(user.uid)) {
+      votedBy.push(user.uid);
+    }
+
     await updateDoc(pollRef, {
       votes,
-      votedBy: arrayUnion(user.uid),
+      votedBy,
       userVotes
     });
 
