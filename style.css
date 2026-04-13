@@ -284,9 +284,15 @@ button {
 }
 
 .vote-option.selected .vote-tick {
-  color: red;
+  color: rgb(71, 222, 134);
 }
 
 .vote-text {
   flex: 1;
+}
+.poll-author {
+  font-size: 14px;
+  color: #666;
+  margin: 4px 0 10px;
+  font-style: italic;
 }

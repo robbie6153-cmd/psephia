@@ -324,15 +324,25 @@ createBtn.addEventListener("click", async () => {
   votesObject[option2] = 0;
 
   try {
-    await addDoc(collection(db, "polls"), {
-      question,
-      options: [option1, option2],
-      createdAt: Timestamp.now(),
-      createdBy: user.uid,
-      votes: votesObject,
-      votedBy: [],
-      userVotes: {}
-    });
+    const userRef = doc(db, "users", user.uid);
+const userSnap = await getDoc(userRef);
+
+let username = "Anonymous";
+
+if (userSnap.exists()) {
+  username = userSnap.data().username || "Anonymous";
+}
+
+await addDoc(collection(db, "polls"), {
+  question,
+  options: [option1, option2],
+  createdAt: Timestamp.now(),
+  createdBy: user.uid,
+  createdByName: username,
+  votes: votesObject,
+  votedBy: [],
+  userVotes: {}
+});
 
     questionInput.value = "";
     option1Input.value = "";
@@ -384,8 +394,9 @@ async function loadPolls() {
 
       pollsDiv.innerHTML += `
         <div class="poll">
-          <strong>${escapeHtml(p.question || "")}</strong><br>
-          ${optionRows}
+         <strong>${escapeHtml(p.question || "")}</strong><br>
+<p class="poll-author">Poll created by: ${p.createdByName || "Anonymous"}</p>
+${optionRows}
         </div>
       `;
     });
