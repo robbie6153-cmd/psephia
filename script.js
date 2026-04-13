@@ -20,7 +20,6 @@ import {
   doc,
   getDoc,
   updateDoc,
-  increment,
   arrayUnion
 } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 
@@ -36,6 +35,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+
 const appPage = document.querySelector(".app-page");
 const emailInput = document.getElementById("email");
 const passwordInput = document.getElementById("password");
@@ -53,6 +53,7 @@ const option2Input = document.getElementById("option2");
 const createBtn = document.getElementById("create");
 const pollsDiv = document.getElementById("polls");
 const pollsCard = document.getElementById("pollsCard");
+const voteMessage = document.getElementById("voteMessage");
 
 window.toggleMenu = function () {
   const menu = document.getElementById("dropdownMenu");
@@ -69,6 +70,22 @@ document.addEventListener("click", (event) => {
     menu.classList.remove("show");
   }
 });
+
+function showVoteMessage(message, isError = false) {
+  if (!voteMessage) return;
+
+  voteMessage.textContent = message;
+  voteMessage.style.display = "block";
+  voteMessage.style.background = isError ? "#fff3f3" : "#f3fff5";
+  voteMessage.style.color = isError ? "#b00020" : "#146c2e";
+  voteMessage.style.border = isError ? "1px solid #e0b4b4" : "1px solid #b7dfc1";
+}
+
+function hideVoteMessage() {
+  if (!voteMessage) return;
+  voteMessage.style.display = "none";
+  voteMessage.textContent = "";
+}
 
 signUpBtn.addEventListener("click", async () => {
   const email = emailInput.value.trim();
@@ -93,7 +110,6 @@ signUpBtn.addEventListener("click", async () => {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
 
     await sendEmailVerification(userCredential.user);
-
     await signOut(auth);
 
     loginMessage.innerHTML = `
@@ -258,6 +274,7 @@ onAuthStateChanged(auth, async (user) => {
     createPollCard.style.display = "none";
     pollsCard.style.display = "none";
     pollsDiv.innerHTML = "";
+    hideVoteMessage();
     appPage.style.display = "block";
   }
 });
@@ -301,23 +318,27 @@ createBtn.addEventListener("click", async () => {
     alert("Please complete the question and both options.");
     return;
   }
-const votesObject = {};
-votesObject[option1] = 0;
-votesObject[option2] = 0;
+
+  const votesObject = {};
+  votesObject[option1] = 0;
+  votesObject[option2] = 0;
+
   try {
-  
     await addDoc(collection(db, "polls"), {
-  question,
-  options: [option1, option2],
-  createdAt: Timestamp.now(),
-  createdBy: user.uid,
-  votes: votesObject,
-  votedBy: []
-});
+      question,
+      options: [option1, option2],
+      createdAt: Timestamp.now(),
+      createdBy: user.uid,
+      votes: votesObject,
+      votedBy: [],
+      userVotes: {}
+    });
+
     questionInput.value = "";
     option1Input.value = "";
     option2Input.value = "";
 
+    hideVoteMessage();
     await loadPolls();
   } catch (error) {
     console.error("Create poll error:", error);
@@ -337,46 +358,65 @@ async function loadPolls() {
       return;
     }
 
+    const currentUid = auth.currentUser?.uid || null;
+
     snap.forEach((docItem) => {
       const p = docItem.data();
-const currentUid = auth.currentUser?.uid;
-const selectedOption = currentUid && p.userVotes ? p.userVotes[currentUid] : null;
- pollsDiv.innerHTML += `
-  <div class="poll">
-    <strong>${escapeHtml(p.question || "")}</strong><br>
+      const options = Array.isArray(p.options) ? p.options.slice(0, 2) : [];
+      const selectedOption =
+        currentUid && p.userVotes && typeof p.userVotes === "object"
+          ? p.userVotes[currentUid] || null
+          : null;
 
-    <div class="vote-option ${selectedOption === p.options?.[1] ? "selected" : ""}" onclick="handleVoteClick(this, '${docItem.id}', '${escapeHtml(p.options?.[1] || "")}')">
-  <span class="vote-tick">✔</span>
-  <span class="vote-text">${escapeHtml(p.options?.[1] || "")}</span>
-</div>
+      const optionRows = options.map((option) => {
+        const isSelected = selectedOption === option ? " selected" : "";
+        return `
+          <div class="vote-option${isSelected}" data-poll-id="${docItem.id}" data-option="${encodeURIComponent(option)}">
+            <span class="vote-tick">✔</span>
+            <span class="vote-text">${escapeHtml(option)}</span>
+          </div>
+        `;
+      }).join("");
 
-    <div class="vote-option" onclick="handleVoteClick(this, '${docItem.id}', '${escapeHtml(p.options?.[1] || "")}')">
-      <span class="vote-tick">✔</span>
-      <span class="vote-text">${escapeHtml(p.options?.[1] || "")}</span>
-    </div>
-  </div>
-`;
+      pollsDiv.innerHTML += `
+        <div class="poll">
+          <strong>${escapeHtml(p.question || "")}</strong><br>
+          ${optionRows}
+        </div>
+      `;
     });
+
+    attachVoteHandlers();
   } catch (error) {
     console.error("Load polls error:", error);
     pollsDiv.innerHTML = "<p>Could not load polls.</p>";
   }
 }
-window.handleVoteClick = async function (element, pollId, option) {
-  const siblings = element.parentElement.querySelectorAll(".vote-option");
-  siblings.forEach(item => item.classList.remove("selected"));
-  element.classList.add("selected");
 
-  await voteOnPoll(pollId, option);
-};
+function attachVoteHandlers() {
+  const voteOptions = pollsDiv.querySelectorAll(".vote-option");
 
-window.voteOnPoll = async function (pollId, option) {
+  voteOptions.forEach((optionEl) => {
+    optionEl.addEventListener("click", async () => {
+      const pollId = optionEl.dataset.pollId;
+      const encodedOption = optionEl.dataset.option;
+
+      if (!pollId || typeof encodedOption !== "string") {
+        showVoteMessage("There was a problem reading that vote option.", true);
+        return;
+      }
+
+      const option = decodeURIComponent(encodedOption);
+      await voteOnPoll(pollId, option);
+    });
+  });
+}
+
+async function voteOnPoll(pollId, option) {
   const user = auth.currentUser;
-  const voteMessage = document.getElementById("voteMessage");
 
   if (!user) {
-    voteMessage.textContent = "You must be signed in to vote.";
-    voteMessage.style.display = "block";
+    showVoteMessage("You must be signed in to vote.", true);
     return;
   }
 
@@ -385,34 +425,44 @@ window.voteOnPoll = async function (pollId, option) {
     const pollSnap = await getDoc(pollRef);
 
     if (!pollSnap.exists()) {
-      voteMessage.textContent = "Poll not found.";
-      voteMessage.style.display = "block";
+      showVoteMessage("Poll not found.", true);
       return;
     }
 
     const selectedPoll = pollSnap.data();
+    const votedBy = Array.isArray(selectedPoll.votedBy) ? selectedPoll.votedBy : [];
+    const userVotes =
+      selectedPoll.userVotes && typeof selectedPoll.userVotes === "object"
+        ? { ...selectedPoll.userVotes }
+        : {};
+    const votes =
+      selectedPoll.votes && typeof selectedPoll.votes === "object"
+        ? { ...selectedPoll.votes }
+        : {};
 
-    if (selectedPoll.votedBy && selectedPoll.votedBy.includes(user.uid)) {
-      voteMessage.textContent = "You have already voted on this poll. Please try a new one.";
-      voteMessage.style.display = "block";
+    if (votedBy.includes(user.uid)) {
+      showVoteMessage("You have already voted on this poll. Please try a new one.", true);
+      await loadPolls();
       return;
     }
 
- await updateDoc(pollRef, {
-  [`votes.${option}`]: increment(1),
-  votedBy: arrayUnion(user.uid),
-  [`userVotes.${user.uid}`]: option
-});
+    votes[option] = typeof votes[option] === "number" ? votes[option] + 1 : 1;
+    userVotes[user.uid] = option;
 
-    voteMessage.textContent = "Your vote has been received.";
-voteMessage.style.display = "block";
-await loadPolls();
+    await updateDoc(pollRef, {
+      votes,
+      votedBy: arrayUnion(user.uid),
+      userVotes
+    });
+
+    showVoteMessage("Your vote has been received.");
+    await loadPolls();
   } catch (error) {
     console.error("Voting error:", error);
-    voteMessage.textContent = "There was a problem submitting your vote.";
-    voteMessage.style.display = "block";
+    showVoteMessage("There was a problem submitting your vote.", true);
   }
-};
+}
+
 function escapeHtml(text) {
   const div = document.createElement("div");
   div.textContent = text;
