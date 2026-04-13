@@ -45,6 +45,22 @@
       <p>Repeated breaches of these rules may result in content removal or restricted access to the site. For further information, please see our Community Guidelines.</p>
     </div>
   </section>
+<script>
+function toggleMenu() {
+  const menu = document.getElementById("dropdownMenu");
+  menu.style.display = menu.style.display === "block" ? "none" : "block";
+}
 
+document.addEventListener("click", function (e) {
+  const menu = document.getElementById("dropdownMenu");
+  const button = document.querySelector(".menu-button");
+
+  if (!menu || !button) return;
+
+  if (!button.contains(e.target) && !menu.contains(e.target)) {
+    menu.style.display = "none";
+  }
+});
+</script>
 </body>
 </html>

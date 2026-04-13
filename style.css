@@ -254,3 +254,33 @@ button {
 .hidden-until-ready {
   display: none;
 }
+.vote-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  margin-top: 8px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  cursor: pointer;
+  background: #fff;
+}
+
+.vote-option:hover {
+  background: #fafafa;
+}
+
+.vote-tick {
+  font-size: 18px;
+  color: #cfcfcf;
+  width: 20px;
+  text-align: center;
+}
+
+.vote-option.selected .vote-tick {
+  color: red;
+}
+
+.vote-text {
+  flex: 1;
+}

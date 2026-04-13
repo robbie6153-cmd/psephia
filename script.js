@@ -18,7 +18,10 @@ import {
   query,
   orderBy,
   doc,
-  getDoc
+  getDoc,
+  updateDoc,
+  increment,
+  arrayUnion
 } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -298,15 +301,19 @@ createBtn.addEventListener("click", async () => {
     alert("Please complete the question and both options.");
     return;
   }
-
+const votesObject = {};
+votesObject[option1] = 0;
+votesObject[option2] = 0;
   try {
+  
     await addDoc(collection(db, "polls"), {
-      question,
-      options: [option1, option2],
-      createdAt: Timestamp.now(),
-      createdBy: user.uid
-    });
-
+  question,
+  options: [option1, option2],
+  createdAt: Timestamp.now(),
+  createdBy: user.uid,
+  votes: votesObject,
+  votedBy: []
+});
     questionInput.value = "";
     option1Input.value = "";
     option2Input.value = "";
@@ -333,20 +340,76 @@ async function loadPolls() {
     snap.forEach((docItem) => {
       const p = docItem.data();
 
-      pollsDiv.innerHTML += `
-        <div class="poll">
-          <strong>${escapeHtml(p.question || "")}</strong><br>
-          ${escapeHtml(p.options?.[0] || "")}<br>
-          ${escapeHtml(p.options?.[1] || "")}
-        </div>
-      `;
+ pollsDiv.innerHTML += `
+  <div class="poll">
+    <strong>${escapeHtml(p.question || "")}</strong><br>
+
+    <div class="vote-option" onclick="handleVoteClick(this, '${docItem.id}', '${escapeHtml(p.options?.[0] || "")}')">
+      <span class="vote-tick">✔</span>
+      <span class="vote-text">${escapeHtml(p.options?.[0] || "")}</span>
+    </div>
+
+    <div class="vote-option" onclick="handleVoteClick(this, '${docItem.id}', '${escapeHtml(p.options?.[1] || "")}')">
+      <span class="vote-tick">✔</span>
+      <span class="vote-text">${escapeHtml(p.options?.[1] || "")}</span>
+    </div>
+  </div>
+`;
     });
   } catch (error) {
     console.error("Load polls error:", error);
     pollsDiv.innerHTML = "<p>Could not load polls.</p>";
   }
 }
+window.handleVoteClick = async function (element, pollId, option) {
+  const siblings = element.parentElement.querySelectorAll(".vote-option");
+  siblings.forEach(item => item.classList.remove("selected"));
+  element.classList.add("selected");
 
+  await voteOnPoll(pollId, option);
+};
+
+window.voteOnPoll = async function (pollId, option) {
+  const user = auth.currentUser;
+  const voteMessage = document.getElementById("voteMessage");
+
+  if (!user) {
+    voteMessage.textContent = "You must be signed in to vote.";
+    voteMessage.style.display = "block";
+    return;
+  }
+
+  try {
+    const pollRef = doc(db, "polls", pollId);
+    const pollSnap = await getDoc(pollRef);
+
+    if (!pollSnap.exists()) {
+      voteMessage.textContent = "Poll not found.";
+      voteMessage.style.display = "block";
+      return;
+    }
+
+    const selectedPoll = pollSnap.data();
+
+    if (selectedPoll.votedBy && selectedPoll.votedBy.includes(user.uid)) {
+      voteMessage.textContent = "You have already voted on this poll. Please try a new one.";
+      voteMessage.style.display = "block";
+      return;
+    }
+
+    await updateDoc(pollRef, {
+      [`votes.${option}`]: increment(1),
+      votedBy: arrayUnion(user.uid)
+    });
+
+    voteMessage.style.display = "none";
+    await loadPolls();
+  } catch (error) {
+    console.error("Voting error:", error);
+    voteMessage.textContent = "There was a problem submitting your vote.";
+    voteMessage.style.display = "block";
+  }
+};
 function escapeHtml(text) {
   const div = document.createElement("div");
   div.textContent = text;
