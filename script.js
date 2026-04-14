@@ -86,13 +86,6 @@ function showCreatePollView() {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-function showCreatePollView() {
-  pollsView.classList.add("hidden");
-  createPollView.classList.remove("hidden");
-  openCreatePollBtn.classList.add("hidden");
-  window.scrollTo({ top: 0, behavior: "smooth" });
-}
-
 if (openCreatePollBtn) {
   openCreatePollBtn.addEventListener("click", showCreatePollView);
 }
@@ -399,8 +392,18 @@ logoutBtn.addEventListener("click", async () => {
   }
 });
 
+const appPage = document.querySelector(".app-page");
+
 onAuthStateChanged(auth, async (user) => {
+
+  // ALWAYS show page (removes hidden-until-ready)
+  if (appPage) {
+    appPage.classList.remove("hidden-until-ready");
+  }
+
   if (user) {
+
+    // Email not verified
     if (!user.emailVerified) {
       statusText.textContent = "Email not verified";
       logoutBtn.style.display = "none";
@@ -409,11 +412,8 @@ onAuthStateChanged(auth, async (user) => {
       forgotPasswordBtn.style.display = "inline-block";
       emailInput.style.display = "block";
       passwordInput.style.display = "block";
-      createPollCard.style.display = "none";
-      pollsCard.style.display = "none";
-      pollsDiv.innerHTML = "";
-      hideVoteMessage();
-      appPage.style.display = "block";
+
+      showPollsView(); // still allow viewing
       return;
     }
 
@@ -424,6 +424,7 @@ onAuthStateChanged(auth, async (user) => {
       return;
     }
 
+    // Logged in properly
     statusText.textContent = "Logged in: " + user.email;
     logoutBtn.style.display = "inline-block";
     signUpBtn.style.display = "none";
@@ -432,24 +433,21 @@ onAuthStateChanged(auth, async (user) => {
     emailInput.style.display = "none";
     passwordInput.style.display = "none";
 
-    createPollCard.style.display = "block";
-    pollsCard.style.display = "block";
+    // ✅ IMPORTANT NEW FLOW
+    showPollsView();
+    loadPolls();
 
-    await loadPolls();
-    appPage.style.display = "block";
   } else {
     statusText.textContent = "Not logged in";
+
     logoutBtn.style.display = "none";
     signUpBtn.style.display = "inline-block";
     loginBtn.style.display = "inline-block";
     forgotPasswordBtn.style.display = "inline-block";
     emailInput.style.display = "block";
     passwordInput.style.display = "block";
-    createPollCard.style.display = "none";
-    pollsCard.style.display = "none";
-    pollsDiv.innerHTML = "";
-    hideVoteMessage();
-    appPage.style.display = "block";
+
+    showPollsView();
   }
 });
 
