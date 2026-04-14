@@ -35,7 +35,29 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-const appPage = document.querySelector(".app-page");
+// ===== APP ELEMENTS =====
+const pollsView = document.getElementById("pollsView");
+const createPollView = document.getElementById("createPollView");
+
+const openCreatePollBtn = document.getElementById("openCreatePollBtn");
+const cancelCreatePollBtn = document.getElementById("cancelCreatePollBtn");
+const submitPollBtn = document.getElementById("submitPollBtn");
+
+// ===== CREATE POLL INPUTS =====
+const pollQuestion = document.getElementById("pollQuestion");
+const pollCategory = document.getElementById("pollCategory");
+const pollDuration = document.getElementById("pollDuration");
+
+const addOptionBtn = document.getElementById("addOptionBtn");
+const extraOptions = document.getElementById("extraOptions");
+
+// ===== POLLS DISPLAY =====
+const pollsDiv = document.getElementById("polls");
+const pollsCard = document.getElementById("pollsCard");
+const voteMessage = document.getElementById("voteMessage");
+const categoryTabs = document.querySelectorAll(".category-tab");
+
+// ===== AUTH / ACCOUNT =====
 const emailInput = document.getElementById("email");
 const passwordInput = document.getElementById("password");
 const signUpBtn = document.getElementById("signUpBtn");
@@ -45,22 +67,54 @@ const logoutBtn = document.getElementById("logout");
 const statusText = document.getElementById("status");
 const loginMessage = document.getElementById("loginMessage");
 
-const categoryInput = document.getElementById("categoryInput");
-const pollDurationInput = document.getElementById("pollDuration");
-const createPollCard = document.getElementById("createPoll");
-const questionInput = document.getElementById("question");
-const option1Input = document.getElementById("option1");
-const option2Input = document.getElementById("option2");
-const createBtn = document.getElementById("create");
-
-const pollsDiv = document.getElementById("polls");
-const pollsCard = document.getElementById("pollsCard");
-const voteMessage = document.getElementById("voteMessage");
-const categoryTabs = document.querySelectorAll(".category-tab");
-
+// ===== STATE =====
 let selectedCategory = "Politics";
 let countdownInterval = null;
+let optionCount = 2;
 
+function showPollsView() {
+  pollsView.classList.remove("hidden");
+  createPollView.classList.add("hidden");
+  openCreatePollBtn.classList.remove("hidden");
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function showCreatePollView() {
+  pollsView.classList.add("hidden");
+  createPollView.classList.remove("hidden");
+  openCreatePollBtn.classList.add("hidden");
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function showCreatePollView() {
+  pollsView.classList.add("hidden");
+  createPollView.classList.remove("hidden");
+  openCreatePollBtn.classList.add("hidden");
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+if (openCreatePollBtn) {
+  openCreatePollBtn.addEventListener("click", showCreatePollView);
+}
+
+if (cancelCreatePollBtn) {
+  cancelCreatePollBtn.addEventListener("click", showPollsView);
+}
+
+if (addOptionBtn) {
+  addOptionBtn.addEventListener("click", () => {
+    if (optionCount >= 5) return;
+
+    optionCount++;
+
+    const input = document.createElement("input");
+    input.type = "text";
+    input.placeholder = `Option ${optionCount}`;
+    input.className = "poll-option";
+
+    extraOptions.appendChild(input);
+  });
+}
 window.toggleMenu = function () {
   const menu = document.getElementById("dropdownMenu");
   if (menu) {
@@ -422,78 +476,64 @@ async function userHasProfile(uid) {
   }
 }
 
-createBtn.addEventListener("click", async () => {
-  const user = auth.currentUser;
+if (submitPollBtn) {
+  submitPollBtn.addEventListener("click", async () => {
+    const question = pollQuestion.value.trim();
+    const category = pollCategory.value;
+    const durationDays = Number(pollDuration.value);
 
-  if (!user) {
-    alert("You must be logged in.");
-    return;
-  }
+    const optionInputs = document.querySelectorAll(".poll-option");
+    const options = [...optionInputs]
+      .map(input => input.value.trim())
+      .filter(value => value !== "");
 
-  const question = questionInput.value.trim();
-  const option1 = option1Input.value.trim();
-  const option2 = option2Input.value.trim();
-  const category = categoryInput.value;
-  const durationDays = parseInt(pollDurationInput.value, 10);
-
-  if (!question || !option1 || !option2) {
-    alert("Please complete the question and both options.");
-    return;
-  }
-
-  if (category === "Private") {
-    alert("This function is not yet available");
-    return;
-  }
-
-  if (!Number.isInteger(durationDays) || durationDays < 1 || durationDays > 7) {
-    alert("Please choose a poll duration between 1 and 7 days.");
-    return;
-  }
-
-  const now = new Date();
-  const endsAt = new Date(now.getTime() + durationDays * 24 * 60 * 60 * 1000);
-
-  const votesObject = {};
-  votesObject[option1] = 0;
-  votesObject[option2] = 0;
-
-  try {
-    const userRef = doc(db, "users", user.uid);
-    const userSnap = await getDoc(userRef);
-
-    let username = "Anonymous";
-
-    if (userSnap.exists()) {
-      username = userSnap.data().username || "Anonymous";
+    if (!question) {
+      alert("Please enter a question.");
+      return;
     }
 
-    await addDoc(collection(db, "polls"), {
-      question: question,
-      options: [option1, option2],
-      category: category,
-      createdAt: Timestamp.now(),
-      durationDays: durationDays,
-      endsAt: Timestamp.fromDate(endsAt),
-      createdBy: user.uid,
-      createdByName: username,
-      votes: votesObject,
-      votedBy: [],
-      userVotes: {}
-    });
+    if (options.length < 2) {
+      alert("You must create at least two options.");
+      return;
+    }
 
-    questionInput.value = "";
-    option1Input.value = "";
-    option2Input.value = "";
-    pollDurationInput.value = "1";
+    try {
+      const createdAt = new Date();
+      const closesAt = new Date(createdAt.getTime() + durationDays * 24 * 60 * 60 * 1000);
 
-    hideVoteMessage();
-    await loadPolls();
-  } catch (error) {
-    console.error("Create poll error:", error);
-    alert("Error creating poll: " + error.message);
-  }
-});
+      await addDoc(collection(db, "polls"), {
+        question,
+        category,
+        options,
+        createdAt: Timestamp.fromDate(createdAt),
+        closesAt: Timestamp.fromDate(closesAt),
+        createdBy: auth.currentUser?.email || "Unknown user"
+      });
+
+      // reset form
+      pollQuestion.value = "";
+      pollCategory.value = "Politics";
+      pollDuration.value = "1";
+
+      document.querySelectorAll(".poll-option").forEach((input, index) => {
+        if (index < 2) {
+          input.value = "";
+        }
+      });
+
+      extraOptions.innerHTML = "";
+      optionCount = 2;
+
+      // go back to polls
+      showPollsView();
+      loadPolls();
+
+    } catch (error) {
+      console.error("Error creating poll:", error);
+      alert("There was a problem creating the poll.");
+    }
+  });
+}
 
 async function loadPolls() {
   try {
