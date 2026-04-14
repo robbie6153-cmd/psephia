@@ -512,3 +512,9 @@ button {
     font-size: 26px;
   }
 }
+.category-more-hint {
+  margin-top: 70px;
+  padding: 0 16px;
+  font-size: 13px;
+  color: #4f6f8f;
+}
