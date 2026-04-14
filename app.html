@@ -4,12 +4,25 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Psephia App</title>
-  <link rel="stylesheet" href="./style.css?v=9" />
+  <link rel="stylesheet" href="./style.css?v=10" />
 </head>
 
 <body>
-  <div class="menu-wrapper">
+  <div class="top-bar">
     <button class="menu-button" onclick="toggleMenu()">☰</button>
+
+    <div class="category-tabs" id="categoryTabs">
+      <button class="category-tab active" type="button" data-category="Politics">Politics</button>
+      <button class="category-tab" type="button" data-category="Sport">Sport</button>
+      <button class="category-tab" type="button" data-category="Entertainment">Entertainment</button>
+      <button class="category-tab" type="button" data-category="Food and Drink">Food and Drink</button>
+      <button class="category-tab" type="button" data-category="History">History</button>
+      <button class="category-tab" type="button" data-category="Religion">Religion</button>
+      <button class="category-tab" type="button" data-category="Science">Science</button>
+      <button class="category-tab" type="button" data-category="Law/Crime">Law/Crime</button>
+      <button class="category-tab" type="button" data-category="Other">Other</button>
+      <button class="category-tab" type="button" data-category="Private">Private</button>
+    </div>
 
     <div id="dropdownMenu" class="dropdown-menu">
       <a href="index.html">Home</a>
@@ -38,26 +51,9 @@
       <p id="loginMessage"></p>
     </div>
 
-    <!-- POLLS VIEW -->
     <section id="pollsView">
       <div id="pollsCard" class="card">
         <h2>Polls</h2>
-
-        <!-- ✅ CATEGORY TABS (OVAL BUTTONS) -->
-  <div class="category-tabs-wrap">
-  <div class="category-tabs" id="categoryTabs">
-    <button class="category-tab active" type="button" data-category="Politics">Politics</button>
-    <button class="category-tab" type="button" data-category="Sport">Sport</button>
-    <button class="category-tab" type="button" data-category="Entertainment">Entertainment</button>
-    <button class="category-tab" type="button" data-category="Food and Drink">Food and Drink</button>
-    <button class="category-tab" type="button" data-category="History">History</button>
-    <button class="category-tab" type="button" data-category="Religion">Religion</button>
-    <button class="category-tab" type="button" data-category="Science">Science</button>
-    <button class="category-tab" type="button" data-category="Law/Crime">Law/Crime</button>
-    <button class="category-tab" type="button" data-category="Other">Other</button>
-    <button class="category-tab" type="button" data-category="Private">Private</button>
-  </div>
-</div>
 
         <div id="voteMessage" style="display:none; margin-bottom:16px; padding:12px;"></div>
 
@@ -65,7 +61,6 @@
       </div>
     </section>
 
-    <!-- CREATE POLL VIEW -->
     <section id="createPollView" class="hidden">
       <div class="card">
         <h2>Create Poll</h2>

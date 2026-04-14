@@ -13,28 +13,42 @@ body {
   position: relative;
 }
 
+/* TOP BAR */
+.top-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000;
+  background: #73ade7;
+  padding: 12px 12px 10px 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  box-sizing: border-box;
+}
+
 /* MENU */
 .menu-wrapper {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  z-index: 1000;
+  position: static;
 }
 
 .menu-button {
+  flex-shrink: 0;
   background: rgba(255, 255, 255, 0.95);
   border: 1px solid #ccc;
   border-radius: 10px;
-  font-size: 28px;
-  padding: 8px 14px;
+  font-size: 22px;
+  padding: 8px 12px;
   cursor: pointer;
 }
 
 .dropdown-menu {
   display: none !important;
   position: absolute;
-  top: 55px;
-  right: 0;
+  top: 62px;
+  left: 12px;
   width: 230px;
   background: white;
   border: 1px solid #ddd;
@@ -163,7 +177,7 @@ body {
 .app-page {
   max-width: 820px;
   margin: 0 auto;
-  padding: 100px 20px 40px;
+  padding: 110px 20px 40px;
   box-sizing: border-box;
 }
 
@@ -175,6 +189,39 @@ body {
   line-height: 1;
 }
 
+/* CATEGORY TABS IN TOP BAR */
+.category-tabs {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  white-space: nowrap;
+  flex: 1;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.category-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.category-tab {
+  flex: 0 0 auto;
+  padding: 12px 20px;
+  border: 1px solid #cfcfcf;
+  background: #fff;
+  border-radius: 999px;
+  cursor: pointer;
+  font-family: Georgia, serif;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.category-tab.active {
+  border: 3px solid #333;
+  font-weight: bold;
+}
+
+/* CARDS */
 .card {
   background: white;
   padding: 28px;
@@ -254,48 +301,6 @@ button {
 #pollsView,
 #createPollView {
   margin-bottom: 110px;
-}
-
-/* CATEGORY TABS */
-.category-tabs-wrap {
-  position: fixed;
-  top: 110px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 900;
-  width: calc(100% - 32px);
-  max-width: 788px;
-  background: #f3f3f3;
-  border-radius: 18px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  padding: 12px 0;
-}
-
-.category-tabs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-
-#voteMessage,
-#polls {
-  margin-top: 190px;
-}
-
-.category-tab {
-  padding: 12px 22px;
-  border: 1px solid #cfcfcf;
-  background: #fff;
-  border-radius: 999px;
-  cursor: pointer;
-  font-family: Georgia, serif;
-  font-size: 1rem;
-  line-height: 1;
-}
-
-.category-tab.active {
-  border: 3px solid #333;
-  font-weight: bold;
 }
 
 /* POLLS */
@@ -429,9 +434,9 @@ button {
 
 /* MOBILE */
 @media (max-width: 768px) {
-  .menu-wrapper {
-    top: 14px;
-    right: 14px;
+  .top-bar {
+    padding: 10px 10px 8px 10px;
+    gap: 10px;
   }
 
   .menu-button {
@@ -440,6 +445,8 @@ button {
   }
 
   .dropdown-menu {
+    top: 56px;
+    left: 10px;
     width: 210px;
   }
 
@@ -460,7 +467,7 @@ button {
   }
 
   .app-page {
-    padding: 88px 16px 30px;
+    padding: 92px 16px 30px;
   }
 
   .app-page h1 {
@@ -485,12 +492,6 @@ button {
     border-radius: 16px;
   }
 
-  .category-tabs-wrap {
-  top: 90px;
-  width: calc(100% - 32px);
-  padding: 10px 0;
-}
-
   .category-tabs {
     gap: 10px;
   }
@@ -498,7 +499,6 @@ button {
   .category-tab {
     padding: 10px 14px;
     font-size: 14px;
-    border-radius: 999px;
   }
 
   .floating-create-btn {
