@@ -177,7 +177,7 @@ body {
 .app-page {
   max-width: 820px;
   margin: 0 auto;
-  padding: 110px 20px 40px;
+  padding: 145px 20px 40px;
   box-sizing: border-box;
 }
 
@@ -466,9 +466,9 @@ button {
     font-size: 1.4rem;
   }
 
-  .app-page {
-    padding: 92px 16px 30px;
-  }
+ .app-page {
+  padding: 145px 16px 30px;
+}
 
   .app-page h1 {
     font-size: 2.2rem;
@@ -513,8 +513,14 @@ button {
   }
 }
 .category-more-hint {
-  margin-top: 70px;
+  position: fixed;
+  top: 74px;
+  left: 0;
+  width: 100%;
+  z-index: 999;
   padding: 0 16px;
   font-size: 13px;
   color: #4f6f8f;
+  background: #f3f3f3;
+  box-sizing: border-box;
 }
