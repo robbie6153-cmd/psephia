@@ -47,7 +47,7 @@ const submitPollBtn = document.getElementById("submitPollBtn");
 
 // ===== CREATE POLL INPUTS =====
 const pollQuestion = document.getElementById("pollQuestion");
-const pollCategory = document.getElementById("pollCategory");
+const pollCategory = document.getElementById("createPollCategory");
 const pollDuration = document.getElementById("pollDuration");
 const addOptionBtn = document.getElementById("addOptionBtn");
 const extraOptions = document.getElementById("extraOptions");

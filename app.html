@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Psephia App</title>
-  <link rel="stylesheet" href="./style.css?v=8" />
+  <link rel="stylesheet" href="./style.css?v=9" />
 </head>
 
 <body>
@@ -38,22 +38,24 @@
       <p id="loginMessage"></p>
     </div>
 
+    <!-- POLLS VIEW -->
     <section id="pollsView">
       <div id="pollsCard" class="card">
         <h2>Polls</h2>
 
-        <select id="pollCategory">
-  <option value="Politics">Politics</option>
-  <option value="Sport">Sport</option>
-  <option value="Entertainment">Entertainment</option>
-  <option value="Food and Drink">Food and Drink</option>
-  <option value="History">History</option>
-  <option value="Religion">Religion</option>
-  <option value="Science">Science</option>
-  <option value="Law/Crime">Law/Crime</option>
-  <option value="Other">Other</option>
-  <option value="Private">Private</option>
-</select>
+        <!-- ✅ CATEGORY TABS (OVAL BUTTONS) -->
+        <div class="category-tabs" id="categoryTabs">
+          <button class="category-tab active" type="button" data-category="Politics">Politics</button>
+          <button class="category-tab" type="button" data-category="Sport">Sport</button>
+          <button class="category-tab" type="button" data-category="Entertainment">Entertainment</button>
+          <button class="category-tab" type="button" data-category="Food and Drink">Food and Drink</button>
+          <button class="category-tab" type="button" data-category="History">History</button>
+          <button class="category-tab" type="button" data-category="Religion">Religion</button>
+          <button class="category-tab" type="button" data-category="Science">Science</button>
+          <button class="category-tab" type="button" data-category="Law/Crime">Law/Crime</button>
+          <button class="category-tab" type="button" data-category="Other">Other</button>
+          <button class="category-tab" type="button" data-category="Private">Private</button>
+        </div>
 
         <div id="voteMessage" style="display:none; margin-bottom:16px; padding:12px;"></div>
 
@@ -61,23 +63,24 @@
       </div>
     </section>
 
+    <!-- CREATE POLL VIEW -->
     <section id="createPollView" class="hidden">
       <div class="card">
         <h2>Create Poll</h2>
 
-        <label for="pollCategory">Select category</label>
-        <select id="pollCategory">
-  <option value="Politics">Politics</option>
-  <option value="Sport">Sport</option>
-  <option value="Entertainment">Entertainment</option>
-  <option value="Food and Drink">Food and Drink</option>
-  <option value="History">History</option>
-  <option value="Religion">Religion</option>
-  <option value="Science">Science</option>
-  <option value="Law/Crime">Law/Crime</option>
-  <option value="Other">Other</option>
-  <option value="Private">Private</option>
-</select>
+        <label for="createPollCategory">Select category</label>
+        <select id="createPollCategory">
+          <option value="Politics">Politics</option>
+          <option value="Sport">Sport</option>
+          <option value="Entertainment">Entertainment</option>
+          <option value="Food and Drink">Food and Drink</option>
+          <option value="History">History</option>
+          <option value="Religion">Religion</option>
+          <option value="Science">Science</option>
+          <option value="Law/Crime">Law/Crime</option>
+          <option value="Other">Other</option>
+          <option value="Private">Private</option>
+        </select>
 
         <label for="pollDuration">How long do you want this poll to be posted?</label>
         <select id="pollDuration">
@@ -111,6 +114,6 @@
     </button>
   </main>
 
-  <script type="module" src="./script.js?v=8"></script>
+  <script type="module" src="./script.js?v=9"></script>
 </body>
 </html>
