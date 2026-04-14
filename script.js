@@ -495,7 +495,10 @@ if (submitPollBtn) {
     try {
       const createdAt = new Date();
       const closesAt = new Date(createdAt.getTime() + durationDays * 24 * 60 * 60 * 1000);
-      const creator = auth.currentUser?.email || "Unknown user";
+      const user = auth.currentUser;
+
+const userDoc = await getDoc(doc(db, "users", user.uid));
+const creator = userDoc.exists() ? userDoc.data().username : "Unknown user";
 
       await addDoc(collection(db, "polls"), {
         question,
@@ -504,7 +507,6 @@ if (submitPollBtn) {
         createdAt: Timestamp.fromDate(createdAt),
         closesAt: Timestamp.fromDate(closesAt),
         createdBy: creator,
-        createdByName: creator,
         votes: {},
         userVotes: {},
         votedBy: []
@@ -601,7 +603,7 @@ async function loadPolls() {
       pollsDiv.innerHTML += `
         <div class="poll">
           <strong>${escapeHtml(p.question || "")}</strong>
-          <p class="poll-author">Poll created by: ${escapeHtml(p.createdByName || p.createdBy || "Anonymous")}</p>
+         <p class="poll-author">Poll created by: ${escapeHtml(p.createdBy || "Anonymous")}</p>
           ${timerHtml}
           ${contentHtml}
         </div>
