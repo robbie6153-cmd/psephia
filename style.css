@@ -482,13 +482,13 @@ button {
   }
 
   .floating-create-btn {
-  right: 16px;
-  bottom: 16px;
-  padding: 18px 24px;
-  font-size: 18px;
-}
+    right: 16px;
+    bottom: 16px;
+    padding: 18px 24px;
+    font-size: 18px;
+  }
 
-.floating-create-btn .plus {
-  font-size: 26px;
-}
+  .floating-create-btn .plus {
+    font-size: 26px;
+  }
 }
