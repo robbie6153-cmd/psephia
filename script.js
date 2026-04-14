@@ -35,10 +35,12 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
+// ===== PAGE =====
+const appPage = document.querySelector(".app-page");
+
 // ===== APP ELEMENTS =====
 const pollsView = document.getElementById("pollsView");
 const createPollView = document.getElementById("createPollView");
-
 const openCreatePollBtn = document.getElementById("openCreatePollBtn");
 const cancelCreatePollBtn = document.getElementById("cancelCreatePollBtn");
 const submitPollBtn = document.getElementById("submitPollBtn");
@@ -47,7 +49,6 @@ const submitPollBtn = document.getElementById("submitPollBtn");
 const pollQuestion = document.getElementById("pollQuestion");
 const pollCategory = document.getElementById("pollCategory");
 const pollDuration = document.getElementById("pollDuration");
-
 const addOptionBtn = document.getElementById("addOptionBtn");
 const extraOptions = document.getElementById("extraOptions");
 
@@ -72,17 +73,62 @@ let selectedCategory = "Politics";
 let countdownInterval = null;
 let optionCount = 2;
 
+// ===== MENU =====
+window.toggleMenu = function () {
+  const menu = document.getElementById("dropdownMenu");
+  if (menu) {
+    menu.classList.toggle("show");
+  }
+};
+
+document.addEventListener("click", (event) => {
+  const menu = document.getElementById("dropdownMenu");
+  const wrapper = document.querySelector(".menu-wrapper");
+
+  if (menu && wrapper && !wrapper.contains(event.target)) {
+    menu.classList.remove("show");
+  }
+});
+
+// ===== VIEW SWITCHING =====
 function showPollsView() {
-  pollsView.classList.remove("hidden");
-  createPollView.classList.add("hidden");
-  openCreatePollBtn.classList.remove("hidden");
+  if (pollsView) {
+    pollsView.classList.remove("hidden");
+  }
+
+  if (createPollView) {
+    createPollView.classList.add("hidden");
+  }
+
+  if (openCreatePollBtn) {
+    if (auth.currentUser) {
+      openCreatePollBtn.classList.remove("hidden");
+    } else {
+      openCreatePollBtn.classList.add("hidden");
+    }
+  }
+
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 function showCreatePollView() {
-  pollsView.classList.add("hidden");
-  createPollView.classList.remove("hidden");
-  openCreatePollBtn.classList.add("hidden");
+  if (!auth.currentUser) {
+    alert("You must be logged in to create a poll.");
+    return;
+  }
+
+  if (pollsView) {
+    pollsView.classList.add("hidden");
+  }
+
+  if (createPollView) {
+    createPollView.classList.remove("hidden");
+  }
+
+  if (openCreatePollBtn) {
+    openCreatePollBtn.classList.add("hidden");
+  }
+
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
@@ -98,7 +144,7 @@ if (addOptionBtn) {
   addOptionBtn.addEventListener("click", () => {
     if (optionCount >= 5) return;
 
-    optionCount++;
+    optionCount += 1;
 
     const input = document.createElement("input");
     input.type = "text";
@@ -108,21 +154,11 @@ if (addOptionBtn) {
     extraOptions.appendChild(input);
   });
 }
-window.toggleMenu = function () {
-  const menu = document.getElementById("dropdownMenu");
-  if (menu) {
-    menu.classList.toggle("show");
-  }
-};
 
+// ===== CATEGORY TABS =====
 categoryTabs.forEach((tab) => {
   tab.addEventListener("click", () => {
-    const category = tab.dataset.category;
-
-    if (category === "Private") {
-      alert("This function is not yet available");
-      return;
-    }
+    const category = tab.dataset.category || "Politics";
 
     selectedCategory = category;
 
@@ -133,15 +169,7 @@ categoryTabs.forEach((tab) => {
   });
 });
 
-document.addEventListener("click", (event) => {
-  const menu = document.getElementById("dropdownMenu");
-  const wrapper = document.querySelector(".menu-wrapper");
-
-  if (menu && wrapper && !wrapper.contains(event.target)) {
-    menu.classList.remove("show");
-  }
-});
-
+// ===== HELPERS =====
 function showVoteMessage(message, isError = false) {
   if (!voteMessage) return;
 
@@ -154,6 +182,7 @@ function showVoteMessage(message, isError = false) {
 
 function hideVoteMessage() {
   if (!voteMessage) return;
+
   voteMessage.style.display = "none";
   voteMessage.textContent = "";
 }
@@ -165,13 +194,13 @@ function escapeHtml(text) {
 }
 
 function getEndsAtDate(pollData) {
-  if (!pollData?.endsAt) return null;
+  if (!pollData?.closesAt) return null;
 
-  if (typeof pollData.endsAt.toDate === "function") {
-    return pollData.endsAt.toDate();
+  if (typeof pollData.closesAt.toDate === "function") {
+    return pollData.closesAt.toDate();
   }
 
-  const date = new Date(pollData.endsAt);
+  const date = new Date(pollData.closesAt);
   return Number.isNaN(date.getTime()) ? null : date;
 }
 
@@ -204,6 +233,7 @@ function getPollResultsHtml(pollData) {
   const votes = pollData.votes && typeof pollData.votes === "object" ? pollData.votes : {};
 
   let totalVotes = 0;
+
   options.forEach((option) => {
     totalVotes += typeof votes[option] === "number" ? votes[option] : 0;
   });
@@ -253,178 +283,162 @@ function startCountdownUpdater() {
   }, 1000);
 }
 
-signUpBtn.addEventListener("click", async () => {
-  const email = emailInput.value.trim();
-  const password = passwordInput.value.trim();
+// ===== AUTH =====
+if (signUpBtn) {
+  signUpBtn.addEventListener("click", async () => {
+    const email = emailInput?.value.trim() || "";
+    const password = passwordInput?.value.trim() || "";
 
-  if (!email || !password) {
-    loginMessage.textContent = "Please enter both email and password.";
-    return;
-  }
-
-  if (password.length < 6) {
-    loginMessage.textContent = "Password must be at least 6 characters long.";
-    return;
-  }
-
-  signUpBtn.disabled = true;
-  loginBtn.disabled = true;
-  forgotPasswordBtn.disabled = true;
-  loginMessage.textContent = "Creating account...";
-
-  try {
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-
-    await sendEmailVerification(userCredential.user);
-    await signOut(auth);
-
-    loginMessage.innerHTML = `
-      We have sent you a verification email.<br><br>
-      Please click the link in that email, then return here and log in.
-    `;
-  } catch (error) {
-    console.error("Sign up error:", error);
-
-    if (error.code === "auth/email-already-in-use") {
-      loginMessage.textContent = "An account already exists with that email.";
-    } else if (error.code === "auth/invalid-email") {
-      loginMessage.textContent = "Please enter a valid email address.";
-    } else if (error.code === "auth/weak-password") {
-      loginMessage.textContent = "Password must be at least 6 characters long.";
-    } else {
-      loginMessage.textContent = error.message || "Could not create account.";
-    }
-  } finally {
-    signUpBtn.disabled = false;
-    loginBtn.disabled = false;
-    forgotPasswordBtn.disabled = false;
-  }
-});
-
-loginBtn.addEventListener("click", async () => {
-  const email = emailInput.value.trim();
-  const password = passwordInput.value.trim();
-
-  if (!email || !password) {
-    loginMessage.textContent = "Please enter both email and password.";
-    return;
-  }
-
-  signUpBtn.disabled = true;
-  loginBtn.disabled = true;
-  forgotPasswordBtn.disabled = true;
-  loginMessage.textContent = "Logging in...";
-
-  try {
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    const user = userCredential.user;
-
-    if (!user.emailVerified) {
-      await signOut(auth);
-      loginMessage.textContent = "Please verify your email before logging in.";
+    if (!email || !password) {
+      loginMessage.textContent = "Please enter both email and password.";
       return;
     }
 
-    loginMessage.textContent = "Login successful.";
-  } catch (error) {
-    console.error("Login error:", error);
-
-    if (
-      error.code === "auth/invalid-credential" ||
-      error.code === "auth/wrong-password" ||
-      error.code === "auth/user-not-found"
-    ) {
-      loginMessage.textContent = "Incorrect email or password.";
-    } else if (error.code === "auth/invalid-email") {
-      loginMessage.textContent = "Please enter a valid email address.";
-    } else {
-      loginMessage.textContent = error.message || "Could not log in.";
+    if (password.length < 6) {
+      loginMessage.textContent = "Password must be at least 6 characters long.";
+      return;
     }
-  } finally {
-    signUpBtn.disabled = false;
-    loginBtn.disabled = false;
-    forgotPasswordBtn.disabled = false;
-  }
-});
 
-forgotPasswordBtn.addEventListener("click", async () => {
-  const email = emailInput.value.trim();
+    signUpBtn.disabled = true;
+    loginBtn.disabled = true;
+    forgotPasswordBtn.disabled = true;
+    loginMessage.textContent = "Creating account...";
 
-  if (!email) {
-    loginMessage.textContent = "Enter your email address first, then press Forgot Password.";
-    return;
-  }
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
 
-  forgotPasswordBtn.disabled = true;
-  signUpBtn.disabled = true;
-  loginBtn.disabled = true;
-  loginMessage.textContent = "Sending password reset email...";
+      await sendEmailVerification(userCredential.user);
+      await signOut(auth);
 
-  try {
-    await sendPasswordResetEmail(auth, email, {
-      url: window.location.origin + "/app.html"
-    });
+      loginMessage.innerHTML = `
+        We have sent you a verification email.<br><br>
+        Please click the link in that email, then return here and log in.
+      `;
+    } catch (error) {
+      console.error("Sign up error:", error);
 
-    loginMessage.innerHTML = `
-      We have sent you a password reset email.<br><br>
-      Please use the newest email if you requested more than one reset link.
-    `;
-  } catch (error) {
-    console.error("Password reset error:", error);
-
-    if (error.code === "auth/invalid-email") {
-      loginMessage.textContent = "Please enter a valid email address.";
-    } else {
-      loginMessage.textContent = error.message || "Could not send password reset email.";
+      if (error.code === "auth/email-already-in-use") {
+        loginMessage.textContent = "An account already exists with that email.";
+      } else if (error.code === "auth/invalid-email") {
+        loginMessage.textContent = "Please enter a valid email address.";
+      } else if (error.code === "auth/weak-password") {
+        loginMessage.textContent = "Password must be at least 6 characters long.";
+      } else {
+        loginMessage.textContent = error.message || "Could not create account.";
+      }
+    } finally {
+      signUpBtn.disabled = false;
+      loginBtn.disabled = false;
+      forgotPasswordBtn.disabled = false;
     }
-  } finally {
-    forgotPasswordBtn.disabled = false;
-    signUpBtn.disabled = false;
-    loginBtn.disabled = false;
-  }
-});
+  });
+}
 
-logoutBtn.addEventListener("click", async () => {
-  try {
-    await signOut(auth);
-  } catch (error) {
-    console.error("Logout error:", error);
-  }
-});
+if (loginBtn) {
+  loginBtn.addEventListener("click", async () => {
+    const email = emailInput?.value.trim() || "";
+    const password = passwordInput?.value.trim() || "";
 
-const appPage = document.querySelector(".app-page");
+    if (!email || !password) {
+      loginMessage.textContent = "Please enter both email and password.";
+      return;
+    }
+
+    signUpBtn.disabled = true;
+    loginBtn.disabled = true;
+    forgotPasswordBtn.disabled = true;
+    loginMessage.textContent = "Logging in...";
+
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      if (!user.emailVerified) {
+        await signOut(auth);
+        loginMessage.textContent = "Please verify your email before logging in.";
+        return;
+      }
+
+      loginMessage.textContent = "Login successful.";
+    } catch (error) {
+      console.error("Login error:", error);
+
+      if (
+        error.code === "auth/invalid-credential" ||
+        error.code === "auth/wrong-password" ||
+        error.code === "auth/user-not-found"
+      ) {
+        loginMessage.textContent = "Incorrect email or password.";
+      } else if (error.code === "auth/invalid-email") {
+        loginMessage.textContent = "Please enter a valid email address.";
+      } else {
+        loginMessage.textContent = error.message || "Could not log in.";
+      }
+    } finally {
+      signUpBtn.disabled = false;
+      loginBtn.disabled = false;
+      forgotPasswordBtn.disabled = false;
+    }
+  });
+}
+
+if (forgotPasswordBtn) {
+  forgotPasswordBtn.addEventListener("click", async () => {
+    const email = emailInput?.value.trim() || "";
+
+    if (!email) {
+      loginMessage.textContent = "Enter your email address first, then press Forgot Password.";
+      return;
+    }
+
+    forgotPasswordBtn.disabled = true;
+    signUpBtn.disabled = true;
+    loginBtn.disabled = true;
+    loginMessage.textContent = "Sending password reset email...";
+
+    try {
+      await sendPasswordResetEmail(auth, email, {
+        url: `${window.location.origin}/app.html`
+      });
+
+      loginMessage.innerHTML = `
+        We have sent you a password reset email.<br><br>
+        Please use the newest email if you requested more than one reset link.
+      `;
+    } catch (error) {
+      console.error("Password reset error:", error);
+
+      if (error.code === "auth/invalid-email") {
+        loginMessage.textContent = "Please enter a valid email address.";
+      } else {
+        loginMessage.textContent = error.message || "Could not send password reset email.";
+      }
+    } finally {
+      forgotPasswordBtn.disabled = false;
+      signUpBtn.disabled = false;
+      loginBtn.disabled = false;
+    }
+  });
+}
+
+if (logoutBtn) {
+  logoutBtn.addEventListener("click", async () => {
+    try {
+      await signOut(auth);
+      hideVoteMessage();
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+  });
+}
 
 onAuthStateChanged(auth, async (user) => {
-
-  // ALWAYS show page (removes hidden-until-ready)
   if (appPage) {
     appPage.classList.remove("hidden-until-ready");
+    appPage.style.visibility = "visible";
   }
 
   if (user) {
-
-    // Email not verified
-    if (!user.emailVerified) {
-      statusText.textContent = "Email not verified";
-      logoutBtn.style.display = "none";
-      signUpBtn.style.display = "inline-block";
-      loginBtn.style.display = "inline-block";
-      forgotPasswordBtn.style.display = "inline-block";
-      emailInput.style.display = "block";
-      passwordInput.style.display = "block";
-
-      showPollsView(); // still allow viewing
-      return;
-    }
-
-    const hasProfile = await userHasProfile(user.uid);
-
-    if (!hasProfile) {
-      window.location.replace("create-account.html");
-      return;
-    }
-
-    // Logged in properly
     statusText.textContent = "Logged in: " + user.email;
     logoutBtn.style.display = "inline-block";
     signUpBtn.style.display = "none";
@@ -432,14 +446,12 @@ onAuthStateChanged(auth, async (user) => {
     forgotPasswordBtn.style.display = "none";
     emailInput.style.display = "none";
     passwordInput.style.display = "none";
+    loginMessage.textContent = "";
 
-    // ✅ IMPORTANT NEW FLOW
     showPollsView();
-    loadPolls();
-
+    await loadPolls();
   } else {
     statusText.textContent = "Not logged in";
-
     logoutBtn.style.display = "none";
     signUpBtn.style.display = "inline-block";
     loginBtn.style.display = "inline-block";
@@ -447,43 +459,28 @@ onAuthStateChanged(auth, async (user) => {
     emailInput.style.display = "block";
     passwordInput.style.display = "block";
 
+    hideVoteMessage();
     showPollsView();
+    await loadPolls();
   }
 });
 
-async function userHasProfile(uid) {
-  try {
-    const userRef = doc(db, "users", uid);
-    const userSnap = await getDoc(userRef);
-
-    if (!userSnap.exists()) {
-      return false;
-    }
-
-    const userData = userSnap.data();
-
-    return !!(
-      userData.firstName &&
-      userData.surname &&
-      userData.country &&
-      userData.username
-    );
-  } catch (error) {
-    console.error("Profile check error:", error);
-    return false;
-  }
-}
-
+// ===== CREATE POLL =====
 if (submitPollBtn) {
   submitPollBtn.addEventListener("click", async () => {
-    const question = pollQuestion.value.trim();
-    const category = pollCategory.value;
-    const durationDays = Number(pollDuration.value);
+    const question = pollQuestion?.value.trim() || "";
+    const category = pollCategory?.value || "Politics";
+    const durationDays = Number(pollDuration?.value || "1");
+
+    if (!auth.currentUser) {
+      alert("You must be logged in to create a poll.");
+      return;
+    }
 
     const optionInputs = document.querySelectorAll(".poll-option");
     const options = [...optionInputs]
-      .map(input => input.value.trim())
-      .filter(value => value !== "");
+      .map((input) => input.value.trim())
+      .filter((value) => value !== "");
 
     if (!question) {
       alert("Please enter a question.");
@@ -498,6 +495,7 @@ if (submitPollBtn) {
     try {
       const createdAt = new Date();
       const closesAt = new Date(createdAt.getTime() + durationDays * 24 * 60 * 60 * 1000);
+      const creator = auth.currentUser?.email || "Unknown user";
 
       await addDoc(collection(db, "polls"), {
         question,
@@ -505,10 +503,13 @@ if (submitPollBtn) {
         options,
         createdAt: Timestamp.fromDate(createdAt),
         closesAt: Timestamp.fromDate(closesAt),
-        createdBy: auth.currentUser?.email || "Unknown user"
+        createdBy: creator,
+        createdByName: creator,
+        votes: {},
+        userVotes: {},
+        votedBy: []
       });
 
-      // reset form
       pollQuestion.value = "";
       pollCategory.value = "Politics";
       pollDuration.value = "1";
@@ -522,10 +523,9 @@ if (submitPollBtn) {
       extraOptions.innerHTML = "";
       optionCount = 2;
 
-      // go back to polls
+      hideVoteMessage();
       showPollsView();
-      loadPolls();
-
+      await loadPolls();
     } catch (error) {
       console.error("Error creating poll:", error);
       alert("There was a problem creating the poll.");
@@ -533,7 +533,10 @@ if (submitPollBtn) {
   });
 }
 
+// ===== LOAD POLLS =====
 async function loadPolls() {
+  if (!pollsDiv) return;
+
   try {
     const q = query(collection(db, "polls"), orderBy("createdAt", "desc"));
     const snap = await getDocs(q);
@@ -551,13 +554,13 @@ async function loadPolls() {
     snap.forEach((docItem) => {
       const p = docItem.data();
 
-      if ((p.category || "Other") !== selectedCategory) {
+      if ((p.category || "Politics") !== selectedCategory) {
         return;
       }
 
       hasVisiblePolls = true;
 
-      const options = Array.isArray(p.options) ? p.options.slice(0, 2) : [];
+      const options = Array.isArray(p.options) ? p.options : [];
       const selectedOption =
         currentUid && p.userVotes && typeof p.userVotes === "object"
           ? p.userVotes[currentUid] || null
@@ -597,8 +600,8 @@ async function loadPolls() {
 
       pollsDiv.innerHTML += `
         <div class="poll">
-          <strong>${escapeHtml(p.question || "")}</strong><br>
-          <p class="poll-author">Poll created by: ${escapeHtml(p.createdByName || "Anonymous")}</p>
+          <strong>${escapeHtml(p.question || "")}</strong>
+          <p class="poll-author">Poll created by: ${escapeHtml(p.createdByName || p.createdBy || "Anonymous")}</p>
           ${timerHtml}
           ${contentHtml}
         </div>
@@ -616,24 +619,27 @@ async function loadPolls() {
   }
 }
 
-pollsDiv.addEventListener("click", async (event) => {
-  const optionEl = event.target.closest(".vote-option");
+// ===== VOTING =====
+if (pollsDiv) {
+  pollsDiv.addEventListener("click", async (event) => {
+    const optionEl = event.target.closest(".vote-option");
 
-  if (!optionEl || !pollsDiv.contains(optionEl)) {
-    return;
-  }
+    if (!optionEl || !pollsDiv.contains(optionEl)) {
+      return;
+    }
 
-  const pollId = optionEl.dataset.pollId;
-  const encodedOption = optionEl.dataset.option;
+    const pollId = optionEl.dataset.pollId;
+    const encodedOption = optionEl.dataset.option;
 
-  if (!pollId || typeof encodedOption !== "string") {
-    showVoteMessage("There was a problem reading that vote option.", true);
-    return;
-  }
+    if (!pollId || typeof encodedOption !== "string") {
+      showVoteMessage("There was a problem reading that vote option.", true);
+      return;
+    }
 
-  const option = decodeURIComponent(encodedOption);
-  await voteOnPoll(pollId, option);
-});
+    const option = decodeURIComponent(encodedOption);
+    await voteOnPoll(pollId, option);
+  });
+}
 
 async function voteOnPoll(pollId, option) {
   const user = auth.currentUser;
@@ -687,9 +693,9 @@ async function voteOnPoll(pollId, option) {
     }
 
     await updateDoc(pollRef, {
-      votes: votes,
-      votedBy: votedBy,
-      userVotes: userVotes
+      votes,
+      votedBy,
+      userVotes
     });
 
     showVoteMessage("Your vote has been received.", false);
