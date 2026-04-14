@@ -42,12 +42,18 @@
       <div id="pollsCard" class="card">
         <h2>Polls</h2>
 
-        <div class="category-tabs">
-          <button class="category-tab active" data-category="Politics">Politics</button>
-          <button class="category-tab" data-category="Sport">Sport</button>
-          <button class="category-tab" data-category="Entertainment">Entertainment</button>
-          <button class="category-tab" data-category="Food and Drink">Food and Drink</button>
-        </div>
+        <select id="pollCategory">
+  <option value="Politics">Politics</option>
+  <option value="Sport">Sport</option>
+  <option value="Entertainment">Entertainment</option>
+  <option value="Food and Drink">Food and Drink</option>
+  <option value="History">History</option>
+  <option value="Religion">Religion</option>
+  <option value="Science">Science</option>
+  <option value="Law/Crime">Law/Crime</option>
+  <option value="Other">Other</option>
+  <option value="Private">Private</option>
+</select>
 
         <div id="voteMessage" style="display:none; margin-bottom:16px; padding:12px;"></div>
 
@@ -61,11 +67,17 @@
 
         <label for="pollCategory">Select category</label>
         <select id="pollCategory">
-          <option value="Politics">Politics</option>
-          <option value="Sport">Sport</option>
-          <option value="Entertainment">Entertainment</option>
-          <option value="Food and Drink">Food and Drink</option>
-        </select>
+  <option value="Politics">Politics</option>
+  <option value="Sport">Sport</option>
+  <option value="Entertainment">Entertainment</option>
+  <option value="Food and Drink">Food and Drink</option>
+  <option value="History">History</option>
+  <option value="Religion">Religion</option>
+  <option value="Science">Science</option>
+  <option value="Law/Crime">Law/Crime</option>
+  <option value="Other">Other</option>
+  <option value="Private">Private</option>
+</select>
 
         <label for="pollDuration">How long do you want this poll to be posted?</label>
         <select id="pollDuration">
