@@ -1,78 +1,104 @@
-<main class="app-page hidden-until-ready">
-  <h1>Psephia</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Psephia App</title>
+  <link rel="stylesheet" href="./style.css?v=8" />
+</head>
 
-  <div class="card">
-    <h2>Account</h2>
+<body>
+  <div class="menu-wrapper">
+    <button class="menu-button" onclick="toggleMenu()">☰</button>
 
-    <input id="email" type="email" placeholder="Email" />
-    <input id="password" type="password" placeholder="Password" />
-
-    <button id="signUpBtn">Create Account</button>
-    <button id="loginBtn">Log In</button>
-    <button id="forgotPasswordBtn">Forgot Password?</button>
-    <button id="logout" style="display:none;">Log Out</button>
-
-    <p id="status">Not logged in</p>
-    <p id="loginMessage"></p>
+    <div id="dropdownMenu" class="dropdown-menu">
+      <a href="index.html">Home</a>
+      <a href="profile.html">My Profile</a>
+      <a href="community-guidelines.html">Community Guidelines</a>
+      <a href="privacy.html">Privacy Policy</a>
+      <a href="terms.html">Terms of Use</a>
+    </div>
   </div>
 
-  <section id="pollsView">
-    <div id="pollsCard" class="card">
-      <h2>Polls</h2>
+  <main class="app-page hidden-until-ready">
+    <h1>Psephia</h1>
 
-      <div class="category-tabs">
-        <button class="category-tab active" data-category="Politics">Politics</button>
-        <button class="category-tab" data-category="Sport">Sport</button>
-        <button class="category-tab" data-category="Entertainment">Entertainment</button>
-        <button class="category-tab" data-category="Food and Drink">Food and Drink</button>
-      </div>
-
-      <div id="voteMessage" style="display:none; margin-bottom:16px; padding:12px;"></div>
-
-      <div id="polls"></div>
-    </div>
-  </section>
-
-  <section id="createPollView" class="hidden">
     <div class="card">
-      <h2>Create Poll</h2>
+      <h2>Account</h2>
 
-      <label for="pollCategory">Select category</label>
-      <select id="pollCategory">
-        <option value="Politics">Politics</option>
-        <option value="Sport">Sport</option>
-        <option value="Entertainment">Entertainment</option>
-        <option value="Food and Drink">Food and Drink</option>
-      </select>
+      <input id="email" type="email" placeholder="Email" />
+      <input id="password" type="password" placeholder="Password" />
 
-      <label for="pollDuration">How long do you want this poll to be posted?</label>
-      <select id="pollDuration">
-        <option value="1">1 day</option>
-        <option value="2">2 days</option>
-        <option value="3">3 days</option>
-        <option value="4">4 days</option>
-        <option value="5">5 days</option>
-        <option value="6">6 days</option>
-        <option value="7">7 days</option>
-      </select>
+      <button id="signUpBtn">Create Account</button>
+      <button id="loginBtn">Log In</button>
+      <button id="forgotPasswordBtn">Forgot Password?</button>
+      <button id="logout" style="display:none;">Log Out</button>
 
-      <input id="pollQuestion" type="text" placeholder="Question" />
-      <input class="poll-option" type="text" placeholder="Option 1" />
-      <input class="poll-option" type="text" placeholder="Option 2" />
-
-      <button id="addOptionBtn" type="button">Add another option</button>
-
-      <div id="extraOptions"></div>
-
-      <div class="create-actions">
-        <button id="cancelCreatePollBtn" type="button">Cancel</button>
-        <button id="submitPollBtn" type="button">Create</button>
-      </div>
+      <p id="status">Not logged in</p>
+      <p id="loginMessage"></p>
     </div>
-  </section>
 
-  <button id="openCreatePollBtn" class="floating-create-btn" type="button">
-    <span class="plus">+</span>
-    <span>Create Poll</span>
-  </button>
-</main>
+    <section id="pollsView">
+      <div id="pollsCard" class="card">
+        <h2>Polls</h2>
+
+        <div class="category-tabs">
+          <button class="category-tab active" data-category="Politics">Politics</button>
+          <button class="category-tab" data-category="Sport">Sport</button>
+          <button class="category-tab" data-category="Entertainment">Entertainment</button>
+          <button class="category-tab" data-category="Food and Drink">Food and Drink</button>
+        </div>
+
+        <div id="voteMessage" style="display:none; margin-bottom:16px; padding:12px;"></div>
+
+        <div id="polls"></div>
+      </div>
+    </section>
+
+    <section id="createPollView" class="hidden">
+      <div class="card">
+        <h2>Create Poll</h2>
+
+        <label for="pollCategory">Select category</label>
+        <select id="pollCategory">
+          <option value="Politics">Politics</option>
+          <option value="Sport">Sport</option>
+          <option value="Entertainment">Entertainment</option>
+          <option value="Food and Drink">Food and Drink</option>
+        </select>
+
+        <label for="pollDuration">How long do you want this poll to be posted?</label>
+        <select id="pollDuration">
+          <option value="1">1 day</option>
+          <option value="2">2 days</option>
+          <option value="3">3 days</option>
+          <option value="4">4 days</option>
+          <option value="5">5 days</option>
+          <option value="6">6 days</option>
+          <option value="7">7 days</option>
+        </select>
+
+        <input id="pollQuestion" type="text" placeholder="Question" />
+        <input class="poll-option" type="text" placeholder="Option 1" />
+        <input class="poll-option" type="text" placeholder="Option 2" />
+
+        <button id="addOptionBtn" type="button">Add another option</button>
+
+        <div id="extraOptions"></div>
+
+        <div class="create-actions">
+          <button id="cancelCreatePollBtn" type="button">Cancel</button>
+          <button id="submitPollBtn" type="button">Create</button>
+        </div>
+      </div>
+    </section>
+
+    <button id="openCreatePollBtn" class="floating-create-btn" type="button">
+      <span class="plus">+</span>
+      <span>Create Poll</span>
+    </button>
+  </main>
+
+  <script type="module" src="./script.js?v=8"></script>
+</body>
+</html>
