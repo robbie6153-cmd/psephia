@@ -849,19 +849,18 @@ async function loadPolls() {
     });
 
     if (!hasVisiblePolls) {
-      pollsDiv.innerHTML =
-        currentPollView === "open"
-          ? "<p>No open polls in this category yet.</p>"
-          : "<p>No recent results in this category yet.</p>";
-    }
+  pollsDiv.innerHTML =
+    currentPollView === "open"
+      ? "<p>No open polls in this category yet.</p>"
+      : "<p>No recent results in this category yet.</p>";
+}
 
-    if (currentPollView === "open") {
-      startCountdownUpdater();
-    }
-  } catch (error) {
-    console.error("Load polls error:", error);
-    pollsDiv.innerHTML = "<p>Could not load polls.</p>";
-  }
+startCountdownUpdater();
+
+} catch (error) {
+  console.error("Load polls error:", error);
+  pollsDiv.innerHTML = "<p>Could not load polls.</p>";
+}
 }
 // ===== VOTING =====
 if (pollsDiv) {
