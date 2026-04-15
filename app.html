@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Psephia App</title>
-  <link rel="stylesheet" href="./style.css?v=10" />
+  <link rel="stylesheet" href="./style.css?v=11" />
 </head>
 
 <body>
@@ -32,7 +32,9 @@
       <a href="terms.html">Terms of Use</a>
     </div>
   </div>
-<div class="category-more-hint">← Swipe for more categories →</div>
+
+  <div class="category-more-hint">← Swipe for more categories →</div>
+
   <main class="app-page hidden-until-ready">
     <h1>Psephia</h1>
 
@@ -50,6 +52,21 @@
       <p id="status">Not logged in</p>
       <p id="loginMessage"></p>
     </div>
+
+    <section id="userDetailsView" class="hidden">
+      <div class="card">
+        <h2>Your Details</h2>
+        <p>Please complete your details before using Psephia.</p>
+
+        <input id="firstName" type="text" placeholder="First name" />
+        <input id="lastName" type="text" placeholder="Last name" />
+        <input id="country" type="text" placeholder="Country" />
+        <input id="username" type="text" placeholder="Choose a username" />
+
+        <button id="saveDetailsBtn" type="button">Save Details</button>
+        <p id="detailsMessage"></p>
+      </div>
+    </section>
 
     <section id="pollsView">
       <div id="pollsCard" class="card">
@@ -111,6 +128,6 @@
     </button>
   </main>
 
-  <script type="module" src="./script.js?v=10"></script>
+  <script type="module" src="./script.js?v=11"></script>
 </body>
 </html>
