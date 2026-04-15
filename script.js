@@ -6,7 +6,8 @@ import {
   signInWithEmailAndPassword,
   sendEmailVerification,
   sendPasswordResetEmail,
-  signOut
+  signOut,
+  applyActionCode
 } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
 
 import {
@@ -35,6 +36,22 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+
+const urlParams = new URLSearchParams(window.location.search);
+const mode = urlParams.get("mode");
+const oobCode = urlParams.get("oobCode");
+
+if (mode === "verifyEmail" && oobCode) {
+  applyActionCode(auth, oobCode)
+    .then(() => {
+      alert("Email verified successfully. You can now log in.");
+      window.location.href = "app.html?verified=1";
+    })
+    .catch((error) => {
+      console.error("Email verification error:", error);
+      alert("This verification link is invalid or has expired.");
+    });
+}
 
 // ===== PAGE =====
 const appPage = document.querySelector(".app-page");
@@ -390,6 +407,10 @@ if (saveDetailsBtn) {
 }
 
 // ===== AUTH =====
+const verifyEmailActionCodeSettings = {
+  url: "https://psephia.com/app.html",
+  handleCodeInApp: false
+};
 if (signUpBtn) {
   signUpBtn.addEventListener("click", async () => {
     const email = emailInput?.value.trim() || "";
@@ -413,7 +434,7 @@ if (signUpBtn) {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
 
-      await sendEmailVerification(userCredential.user);
+     await sendEmailVerification(userCredential.user, verifyEmailActionCodeSettings);
       await signOut(auth);
 
       loginMessage.innerHTML = `
@@ -539,6 +560,15 @@ if (logoutBtn) {
 }
 
 onAuthStateChanged(auth, async (user) => {
+
+  const urlParams = new URLSearchParams(window.location.search);
+
+  if (urlParams.get("verified") === "1") {
+    if (loginMessage) {
+      loginMessage.textContent = "✅ Email verified. Please log in.";
+    }
+  }
+
   if (appPage) {
     appPage.classList.remove("hidden-until-ready");
     appPage.style.visibility = "visible";
