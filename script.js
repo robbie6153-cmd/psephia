@@ -2,12 +2,12 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/fireba
 import {
   getAuth,
   onAuthStateChanged,
-  createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
-  sendEmailVerification,
   sendPasswordResetEmail,
   signOut,
-  applyActionCode
+  sendSignInLinkToEmail,
+  isSignInWithEmailLink,
+  signInWithEmailLink
 } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
 
 import {
@@ -37,20 +37,30 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-const urlParams = new URLSearchParams(window.location.search);
-const mode = urlParams.get("mode");
-const oobCode = urlParams.get("oobCode");
+if (isSignInWithEmailLink(auth, window.location.href)) {
+  let email = localStorage.getItem("emailForSignIn");
 
-if (mode === "verifyEmail" && oobCode) {
-  applyActionCode(auth, oobCode)
-    .then(() => {
-      alert("Email verified successfully. You can now log in.");
-      window.location.href = "app.html?verified=1";
-    })
-    .catch((error) => {
-      console.error("Email verification error:", error);
-      alert("This verification link is invalid or has expired.");
-    });
+  if (!email) {
+    email = prompt("Please confirm your email:");
+  }
+
+  if (email) {
+    signInWithEmailLink(auth, email, window.location.href)
+      .then(() => {
+        localStorage.removeItem("emailForSignIn");
+
+        // Clean URL (removes Firebase parameters)
+        window.history.replaceState({}, document.title, "app.html");
+      })
+      .catch((error) => {
+        console.error("Sign-in error:", error);
+
+        const loginMessage = document.getElementById("loginMessage");
+        if (loginMessage) {
+          loginMessage.textContent = "Link expired. Please request a new one.";
+        }
+      });
+  }
 }
 
 // ===== PAGE =====
@@ -413,51 +423,41 @@ const verifyEmailActionCodeSettings = {
 };
 if (signUpBtn) {
   signUpBtn.addEventListener("click", async () => {
-    const email = emailInput?.value.trim() || "";
-    const password = passwordInput?.value.trim() || "";
+    const email = emailInput?.value.trim();
 
-    if (!email || !password) {
-      loginMessage.textContent = "Please enter both email and password.";
-      return;
-    }
-
-    if (password.length < 6) {
-      loginMessage.textContent = "Password must be at least 6 characters long.";
+    if (!email) {
+      loginMessage.textContent = "Please enter your email.";
       return;
     }
 
     signUpBtn.disabled = true;
     loginBtn.disabled = true;
     forgotPasswordBtn.disabled = true;
-    loginMessage.textContent = "Creating account...";
+
+    loginMessage.textContent = "Sending sign-in link...";
+
+    const actionCodeSettings = {
+      url: "https://psephia.com/app.html",
+      handleCodeInApp: true
+    };
 
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      await sendSignInLinkToEmail(auth, email, actionCodeSettings);
 
-     await sendEmailVerification(userCredential.user, verifyEmailActionCodeSettings);
-      await signOut(auth);
+      localStorage.setItem("emailForSignIn", email);
 
       loginMessage.innerHTML = `
-        We have sent you a verification email.<br><br>
-        Please click the link in that email, then return here and log in.
+        We’ve sent you a sign-in link.<br><br>
+        Click the link in your email to continue.
       `;
     } catch (error) {
-      console.error("Sign up error:", error);
-
-      if (error.code === "auth/email-already-in-use") {
-        loginMessage.textContent = "An account already exists with that email.";
-      } else if (error.code === "auth/invalid-email") {
-        loginMessage.textContent = "Please enter a valid email address.";
-      } else if (error.code === "auth/weak-password") {
-        loginMessage.textContent = "Password must be at least 6 characters long.";
-      } else {
-        loginMessage.textContent = error.message || "Could not create account.";
-      }
-    } finally {
-      signUpBtn.disabled = false;
-      loginBtn.disabled = false;
-      forgotPasswordBtn.disabled = false;
+      console.error(error);
+      loginMessage.textContent = error.message || "Error sending link.";
     }
+
+    signUpBtn.disabled = false;
+    loginBtn.disabled = false;
+    forgotPasswordBtn.disabled = false;
   });
 }
 
