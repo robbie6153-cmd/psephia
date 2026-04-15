@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Psephia App</title>
-  <link rel="stylesheet" href="./style.css?v=11" />
+  <link rel="stylesheet" href="./style.css?v=12" />
 </head>
 
 <body>
@@ -72,6 +72,11 @@
       <div id="pollsCard" class="card">
         <h2>Polls</h2>
 
+        <div class="poll-folder-tabs">
+          <button id="openPollsTab" class="poll-folder-tab active" type="button">Polls (Open)</button>
+          <button id="resultsPollsTab" class="poll-folder-tab" type="button">Polls (Results)</button>
+        </div>
+
         <div id="voteMessage" style="display:none; margin-bottom:16px; padding:12px;"></div>
 
         <div id="polls"></div>
@@ -128,6 +133,6 @@
     </button>
   </main>
 
-  <script type="module" src="./script.js?v=11"></script>
+  <script type="module" src="./script.js?v=12"></script>
 </body>
 </html>

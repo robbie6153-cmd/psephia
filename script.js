@@ -94,6 +94,8 @@ const pollsDiv = document.getElementById("polls");
 const pollsCard = document.getElementById("pollsCard");
 const voteMessage = document.getElementById("voteMessage");
 const categoryTabs = document.querySelectorAll(".category-tab");
+const openPollsTab = document.getElementById("openPollsTab");
+const resultsPollsTab = document.getElementById("resultsPollsTab");
 
 // ===== AUTH / ACCOUNT =====
 const emailInput = document.getElementById("email");
@@ -107,9 +109,33 @@ const loginMessage = document.getElementById("loginMessage");
 
 // ===== STATE =====
 let selectedCategory = "Politics";
+let currentPollView = "open";
 let countdownInterval = null;
 let optionCount = 2;
+function setPollView(view) {
+  currentPollView = view;
 
+  if (openPollsTab) {
+    openPollsTab.classList.toggle("active", view === "open");
+  }
+
+  if (resultsPollsTab) {
+    resultsPollsTab.classList.toggle("active", view === "results");
+  }
+
+  loadPolls();
+}
+if (openPollsTab) {
+  openPollsTab.addEventListener("click", () => {
+    setPollView("open");
+  });
+}
+
+if (resultsPollsTab) {
+  resultsPollsTab.addEventListener("click", () => {
+    setPollView("results");
+  });
+}
 // ===== MENU =====
 window.toggleMenu = function () {
   const menu = document.getElementById("dropdownMenu");
@@ -715,6 +741,7 @@ async function loadPolls() {
     }
 
     const currentUid = auth.currentUser?.uid || null;
+    const now = new Date();
     let hasVisiblePolls = false;
 
     snap.forEach((docItem) => {
@@ -723,8 +750,6 @@ async function loadPolls() {
       if ((p.category || "Politics") !== selectedCategory) {
         return;
       }
-
-      hasVisiblePolls = true;
 
       const options = Array.isArray(p.options) ? p.options : [];
       const selectedOption =
@@ -735,18 +760,51 @@ async function loadPolls() {
       const endsAtDate = getEndsAtDate(p);
       const pollEnded = hasPollEnded(p);
 
-      let timerHtml = `<p class="poll-timer">No end time set</p>`;
-      if (endsAtDate) {
+      let showThisPoll = false;
+
+      if (currentPollView === "open") {
+        showThisPoll = !pollEnded;
+      } else if (currentPollView === "results") {
+        if (pollEnded && endsAtDate) {
+          const resultsExpiryTime = endsAtDate.getTime() + (24 * 60 * 60 * 1000);
+          showThisPoll = now.getTime() < resultsExpiryTime;
+        } else {
+          showThisPoll = false;
+        }
+      }
+
+      if (!showThisPoll) {
+        return;
+      }
+
+      hasVisiblePolls = true;
+
+      let timerHtml = "";
+
+      if (currentPollView === "open") {
+        if (endsAtDate) {
+          timerHtml = `
+            <p class="poll-timer" data-end-time="${endsAtDate.getTime()}">
+              ${escapeHtml(formatTimeRemaining(endsAtDate))}
+            </p>
+          `;
+        } else {
+          timerHtml = `<p class="poll-timer">No end time set</p>`;
+        }
+      }
+
+      if (currentPollView === "results" && endsAtDate) {
+        const resultsExpiryDate = new Date(endsAtDate.getTime() + (24 * 60 * 60 * 1000));
         timerHtml = `
-          <p class="poll-timer" data-end-time="${endsAtDate.getTime()}">
-            ${escapeHtml(formatTimeRemaining(endsAtDate))}
+          <p class="poll-timer">
+            Results available for ${escapeHtml(formatTimeRemaining(resultsExpiryDate))}
           </p>
         `;
       }
 
       let contentHtml = "";
 
-      if (pollEnded) {
+      if (currentPollView === "results") {
         contentHtml = getPollResultsHtml(p);
       } else {
         contentHtml = options.map((option) => {
@@ -775,16 +833,20 @@ async function loadPolls() {
     });
 
     if (!hasVisiblePolls) {
-      pollsDiv.innerHTML = "<p>No polls in this category yet.</p>";
+      pollsDiv.innerHTML =
+        currentPollView === "open"
+          ? "<p>No open polls in this category yet.</p>"
+          : "<p>No recent results in this category yet.</p>";
     }
 
-    startCountdownUpdater();
+    if (currentPollView === "open") {
+      startCountdownUpdater();
+    }
   } catch (error) {
     console.error("Load polls error:", error);
     pollsDiv.innerHTML = "<p>Could not load polls.</p>";
   }
 }
-
 // ===== VOTING =====
 if (pollsDiv) {
   pollsDiv.addEventListener("click", async (event) => {

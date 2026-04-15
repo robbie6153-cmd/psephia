@@ -431,14 +431,65 @@ button {
   line-height: 1;
   font-weight: bold;
 }
+.poll-folder-tabs {
+  display: flex;
+  gap: 10px;
+  margin: 14px 0 18px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
 
+.poll-folder-tab {
+  appearance: none;
+  -webkit-appearance: none;
+  border: 2px solid #bfc7bf;
+  border-bottom: none;
+  background: #e7efe7;
+  color: #355b35;
+  font-family: Georgia, serif;
+  font-size: 1rem;
+  font-weight: 700;
+  padding: 10px 18px 9px;
+  border-top-left-radius: 14px;
+  border-top-right-radius: 14px;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  cursor: pointer;
+  position: relative;
+  top: 2px;
+  transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.poll-folder-tab.active {
+  background: #f7f7f7;
+  color: #111;
+  border-color: #cfcfcf;
+  z-index: 2;
+}
+
+.poll-folder-tab:not(.active) {
+  background: #dfeadf;
+  color: #4b6a4b;
+}
+
+.poll-folder-tab:active {
+  transform: translateY(1px);
+}
 /* MOBILE */
 @media (max-width: 768px) {
   .top-bar {
     padding: 10px 10px 8px 10px;
     gap: 10px;
   }
+  .poll-folder-tabs {
+    gap: 8px;
+    margin: 12px 0 16px;
+  }
 
+  .poll-folder-tab {
+    font-size: 0.95rem;
+    padding: 9px 14px 8px;
+  }
   .menu-button {
     font-size: 24px;
     padding: 6px 12px;
