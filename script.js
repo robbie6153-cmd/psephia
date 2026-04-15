@@ -800,7 +800,11 @@ async function loadPolls() {
       if (currentPollView === "open") {
         if (endsAtDate) {
           timerHtml = `
-            <p class="poll-timer" data-end-time="${endsAtDate.getTime()}">
+           <p
+  class="poll-timer"
+  data-end-time="${endsAtDate.getTime()}"
+  data-timer-type="open"
+>
               ${escapeHtml(formatTimeRemaining(endsAtDate))}
             </p>
           `;
@@ -812,9 +816,13 @@ async function loadPolls() {
       if (currentPollView === "results" && endsAtDate) {
         const resultsExpiryDate = new Date(endsAtDate.getTime() + (24 * 60 * 60 * 1000));
         timerHtml = `
-          <p class="poll-timer">
-            Results disappear in ${escapeHtml(getTimeRemainingText(resultsExpiryDate))}
-          </p>
+         <p
+  class="poll-timer"
+  data-end-time="${resultsExpiryDate.getTime()}"
+  data-timer-type="results"
+>
+  Results disappear in ${escapeHtml(getTimeRemainingText(resultsExpiryDate))}
+</p>
         `;
       }
 
