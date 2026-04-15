@@ -19,7 +19,8 @@ import {
   orderBy,
   doc,
   getDoc,
-  updateDoc
+  updateDoc,
+  setDoc
 } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -44,6 +45,15 @@ const createPollView = document.getElementById("createPollView");
 const openCreatePollBtn = document.getElementById("openCreatePollBtn");
 const cancelCreatePollBtn = document.getElementById("cancelCreatePollBtn");
 const submitPollBtn = document.getElementById("submitPollBtn");
+
+// ===== USER DETAILS VIEW =====
+const userDetailsView = document.getElementById("userDetailsView");
+const firstNameInput = document.getElementById("firstName");
+const lastNameInput = document.getElementById("lastName");
+const countryInput = document.getElementById("country");
+const usernameInput = document.getElementById("username");
+const saveDetailsBtn = document.getElementById("saveDetailsBtn");
+const detailsMessage = document.getElementById("detailsMessage");
 
 // ===== CREATE POLL INPUTS =====
 const pollQuestion = document.getElementById("pollQuestion");
@@ -92,6 +102,10 @@ document.addEventListener("click", (event) => {
 
 // ===== VIEW SWITCHING =====
 function showPollsView() {
+  if (userDetailsView) {
+    userDetailsView.classList.add("hidden");
+  }
+
   if (pollsView) {
     pollsView.classList.remove("hidden");
   }
@@ -117,6 +131,10 @@ function showCreatePollView() {
     return;
   }
 
+  if (userDetailsView) {
+    userDetailsView.classList.add("hidden");
+  }
+
   if (pollsView) {
     pollsView.classList.add("hidden");
   }
@@ -127,6 +145,26 @@ function showCreatePollView() {
 
   if (openCreatePollBtn) {
     openCreatePollBtn.classList.add("hidden");
+  }
+
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function showUserDetailsView() {
+  if (pollsView) {
+    pollsView.classList.add("hidden");
+  }
+
+  if (createPollView) {
+    createPollView.classList.add("hidden");
+  }
+
+  if (openCreatePollBtn) {
+    openCreatePollBtn.classList.add("hidden");
+  }
+
+  if (userDetailsView) {
+    userDetailsView.classList.remove("hidden");
   }
 
   window.scrollTo({ top: 0, behavior: "smooth" });
@@ -281,6 +319,74 @@ function startCountdownUpdater() {
       }
     });
   }, 1000);
+}
+
+async function saveUserDetails() {
+  if (!auth.currentUser) {
+    if (detailsMessage) {
+      detailsMessage.textContent = "You must be logged in first.";
+    }
+    return;
+  }
+
+  const firstName = firstNameInput?.value.trim() || "";
+  const lastName = lastNameInput?.value.trim() || "";
+  const country = countryInput?.value.trim() || "";
+  const username = (usernameInput?.value.trim() || "").toLowerCase();
+
+  if (!firstName || !lastName || !country || !username) {
+    if (detailsMessage) {
+      detailsMessage.textContent = "Please complete all fields.";
+    }
+    return;
+  }
+
+  if (username.includes(" ")) {
+    if (detailsMessage) {
+      detailsMessage.textContent = "Username cannot contain spaces.";
+    }
+    return;
+  }
+
+  try {
+    if (saveDetailsBtn) {
+      saveDetailsBtn.disabled = true;
+    }
+
+    if (detailsMessage) {
+      detailsMessage.textContent = "Saving details...";
+    }
+
+    await setDoc(doc(db, "users", auth.currentUser.uid), {
+      uid: auth.currentUser.uid,
+      email: auth.currentUser.email,
+      firstName,
+      lastName,
+      country,
+      username
+    });
+
+    if (detailsMessage) {
+      detailsMessage.textContent = "Details saved.";
+    }
+
+    showPollsView();
+    await loadPolls();
+  } catch (error) {
+    console.error("Save details error:", error);
+
+    if (detailsMessage) {
+      detailsMessage.textContent = "Could not save your details.";
+    }
+  } finally {
+    if (saveDetailsBtn) {
+      saveDetailsBtn.disabled = false;
+    }
+  }
+}
+
+if (saveDetailsBtn) {
+  saveDetailsBtn.addEventListener("click", saveUserDetails);
 }
 
 // ===== AUTH =====
@@ -439,25 +545,43 @@ onAuthStateChanged(auth, async (user) => {
   }
 
   if (user) {
-    statusText.textContent = "Logged in: " + user.email;
-    logoutBtn.style.display = "inline-block";
-    signUpBtn.style.display = "none";
-    loginBtn.style.display = "none";
-    forgotPasswordBtn.style.display = "none";
-    emailInput.style.display = "none";
-    passwordInput.style.display = "none";
-    loginMessage.textContent = "";
+    if (statusText) {
+      statusText.textContent = "Logged in: " + user.email;
+    }
 
-    showPollsView();
-    await loadPolls();
+    if (logoutBtn) logoutBtn.style.display = "inline-block";
+    if (signUpBtn) signUpBtn.style.display = "none";
+    if (loginBtn) loginBtn.style.display = "none";
+    if (forgotPasswordBtn) forgotPasswordBtn.style.display = "none";
+    if (emailInput) emailInput.style.display = "none";
+    if (passwordInput) passwordInput.style.display = "none";
+    if (loginMessage) loginMessage.textContent = "";
+
+    try {
+      const userRef = doc(db, "users", user.uid);
+      const userSnap = await getDoc(userRef);
+
+      if (userSnap.exists()) {
+        showPollsView();
+        await loadPolls();
+      } else {
+        showUserDetailsView();
+      }
+    } catch (error) {
+      console.error("Profile check error:", error);
+      showUserDetailsView();
+    }
   } else {
-    statusText.textContent = "Not logged in";
-    logoutBtn.style.display = "none";
-    signUpBtn.style.display = "inline-block";
-    loginBtn.style.display = "inline-block";
-    forgotPasswordBtn.style.display = "inline-block";
-    emailInput.style.display = "block";
-    passwordInput.style.display = "block";
+    if (statusText) {
+      statusText.textContent = "Not logged in";
+    }
+
+    if (logoutBtn) logoutBtn.style.display = "none";
+    if (signUpBtn) signUpBtn.style.display = "inline-block";
+    if (loginBtn) loginBtn.style.display = "inline-block";
+    if (forgotPasswordBtn) forgotPasswordBtn.style.display = "inline-block";
+    if (emailInput) emailInput.style.display = "block";
+    if (passwordInput) passwordInput.style.display = "block";
 
     hideVoteMessage();
     showPollsView();
@@ -497,8 +621,15 @@ if (submitPollBtn) {
       const closesAt = new Date(createdAt.getTime() + durationDays * 24 * 60 * 60 * 1000);
       const user = auth.currentUser;
 
-const userDoc = await getDoc(doc(db, "users", user.uid));
-const creator = userDoc.exists() ? userDoc.data().username : "Unknown user";
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+
+      if (!userDoc.exists()) {
+        alert("Please complete your profile details before creating a poll.");
+        showUserDetailsView();
+        return;
+      }
+
+      const creator = userDoc.data().username;
 
       await addDoc(collection(db, "polls"), {
         question,
@@ -522,7 +653,10 @@ const creator = userDoc.exists() ? userDoc.data().username : "Unknown user";
         }
       });
 
-      extraOptions.innerHTML = "";
+      if (extraOptions) {
+        extraOptions.innerHTML = "";
+      }
+
       optionCount = 2;
 
       hideVoteMessage();
@@ -603,7 +737,7 @@ async function loadPolls() {
       pollsDiv.innerHTML += `
         <div class="poll">
           <strong>${escapeHtml(p.question || "")}</strong>
-         <p class="poll-author">Poll created by: ${escapeHtml(p.createdBy || "Anonymous")}</p>
+          <p class="poll-author">Poll created by: ${escapeHtml(p.createdBy || "Anonymous")}</p>
           ${timerHtml}
           ${contentHtml}
         </div>
