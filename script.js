@@ -318,6 +318,22 @@ function formatTimeRemainingFromMs(ms) {
 function formatTimeRemaining(endsAtDate) {
   return formatTimeRemainingFromMs(endsAtDate.getTime() - Date.now());
 }
+function getTimeRemainingText(targetDate) {
+  const now = new Date();
+  const diff = targetDate.getTime() - now.getTime();
+
+  if (diff <= 0) {
+    return "0 minutes";
+  }
+
+  const totalSeconds = Math.floor(diff / 1000);
+  const days = Math.floor(totalSeconds / 86400);
+  const hours = Math.floor((totalSeconds % 86400) / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  return `${days} days, ${hours} hours, ${minutes} minutes and ${seconds} seconds`;
+}
 
 function getPollResultsHtml(pollData) {
   const options = Array.isArray(pollData.options) ? pollData.options : [];
@@ -797,7 +813,7 @@ async function loadPolls() {
         const resultsExpiryDate = new Date(endsAtDate.getTime() + (24 * 60 * 60 * 1000));
         timerHtml = `
           <p class="poll-timer">
-            Results available for ${escapeHtml(formatTimeRemaining(resultsExpiryDate))}
+            Results disappear in ${escapeHtml(getTimeRemainingText(resultsExpiryDate))}
           </p>
         `;
       }
