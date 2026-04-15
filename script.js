@@ -378,13 +378,27 @@ function startCountdownUpdater() {
 
     timerEls.forEach((el) => {
       const endTime = Number(el.dataset.endTime);
+      const timerType = el.dataset.timerType || "open";
+
       if (!endTime) return;
 
       const remaining = endTime - Date.now();
-      el.textContent = formatTimeRemainingFromMs(remaining);
 
       if (remaining <= 0) {
+        if (timerType === "results") {
+          el.textContent = "Results expired";
+        } else {
+          el.textContent = "Voting has ended";
+        }
+
         loadPolls();
+        return;
+      }
+
+      if (timerType === "results") {
+        el.textContent = `Results disappear in ${getTimeRemainingText(new Date(endTime))}`;
+      } else {
+        el.textContent = formatTimeRemainingFromMs(remaining);
       }
     });
   }, 1000);
