@@ -105,7 +105,7 @@ const passwordInput = document.getElementById("password");
 const signUpBtn = document.getElementById("signUpBtn");
 const loginBtn = document.getElementById("loginBtn");
 const forgotPasswordBtn = document.getElementById("forgotPasswordBtn");
-const logoutBtn = document.getElementById("logoutBtn");
+const switchAccountBtn = document.getElementById("switchAccountBtn");
 const loginMessage = document.getElementById("loginMessage");
 
 const profileFirstName = document.getElementById("profileFirstName");
@@ -594,7 +594,16 @@ if (logoutBtn) {
     }
   });
 }
-
+if (switchAccountBtn) {
+  switchAccountBtn.addEventListener("click", async () => {
+    try {
+      await signOut(auth);
+      window.location.href = "profile.html";
+    } catch (error) {
+      console.error("Switch account error:", error);
+    }
+  });
+}
 if (signUpBtn) {
   signUpBtn.addEventListener("click", async () => {
     const email = emailInput?.value.trim() || "";
