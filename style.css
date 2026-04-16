@@ -636,3 +636,90 @@ select {
 .back-button:hover {
   background: #7dd49a;
 }
+.profile-section-header {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 12px;
+}
+
+.icon-button {
+  background: #efefef;
+  border: 1px solid #ccc;
+  border-radius: 999px;
+  padding: 10px 16px;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.my-poll-card {
+  border: 1px solid #d8d8d8;
+  border-radius: 18px;
+  padding: 18px;
+  margin-bottom: 16px;
+  background: #fff;
+}
+
+.my-poll-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.poll-menu-wrapper {
+  position: relative;
+}
+
+.poll-menu-btn {
+  border: none;
+  background: transparent;
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 4px;
+}
+
+.poll-menu-dropdown {
+  display: none;
+  position: absolute;
+  top: 28px;
+  right: 0;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+  min-width: 140px;
+  z-index: 10;
+}
+
+.poll-menu-dropdown.show {
+  display: block;
+}
+
+.poll-menu-dropdown button {
+  display: block;
+  width: 100%;
+  border: none;
+  background: white;
+  text-align: left;
+  padding: 12px 14px;
+  border-radius: 0;
+}
+
+.poll-menu-dropdown button:hover {
+  background: #f5f5f5;
+}
+
+.danger-card {
+  border: 1px solid #e3b3b3;
+}
+
+.danger-button {
+  background: #a12626;
+  color: white;
+  border: none;
+}
+
+.danger-button:hover {
+  opacity: 0.95;
+}
