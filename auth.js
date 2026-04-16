@@ -230,44 +230,49 @@ function initAuthButtons() {
     });
   }
 
-  if (loginBtn) {
-    loginBtn.addEventListener("click", async () => {
-      const email = emailInput?.value.trim() || "";
-      const password = passwordInput?.value.trim() || "";
+if (loginBtn) {
+  loginBtn.addEventListener("click", async () => {
+    const email = emailInput?.value.trim() || "";
+    const password = passwordInput?.value.trim() || "";
 
-      if (!email || !password) {
+    if (!email || !password) {
+      if (loginMessage) {
+        loginMessage.textContent = "Please enter both email and password.";
+      }
+      return;
+    }
+
+    if (loginMessage) {
+      loginMessage.textContent = "Logging in...";
+    }
+
+    try {
+      await signOut(auth).catch(() => {});
+
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      if (user && user.emailVerified === false) {
+        await signOut(auth);
         if (loginMessage) {
-          loginMessage.textContent = "Please enter both email and password.";
+          loginMessage.textContent = "Please verify your email before logging in.";
         }
         return;
       }
 
       if (loginMessage) {
-        loginMessage.textContent = "Logging in...";
+        loginMessage.textContent = "Login successful.";
       }
 
-      try {
-        await signOut(auth).catch(() => {});
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
-        const user = userCredential.user;
-
-        if (user && user.emailVerified === false) {
-          await signOut(auth);
-          if (loginMessage) {
-            loginMessage.textContent = "Please verify your email before logging in.";
-          }
-          return;
-        }
-
-        window.location.href = "app.html";
-      } catch (error) {
-        console.error("Login error:", error);
-        if (loginMessage) {
-          loginMessage.textContent = "Incorrect email or password.";
-        }
+      window.location.href = "app.html";
+    } catch (error) {
+      console.error("Login error:", error);
+      if (loginMessage) {
+        loginMessage.textContent = "Incorrect email or password.";
       }
-    });
-  }
+    }
+  });
+}
 
   if (forgotPasswordBtn) {
     forgotPasswordBtn.addEventListener("click", async () => {
@@ -342,30 +347,30 @@ function initAuthState() {
       appPage.style.visibility = "visible";
     }
 
-    if (isProfilePage) {
-      if (user) {
-        if (profileAuthView) {
-          profileAuthView.classList.add("hidden");
-        }
-        if (profileLoggedInView) {
-          profileLoggedInView.classList.remove("hidden");
-        }
+   if (isProfilePage) {
+  if (profileAuthView) {
+    profileAuthView.classList.remove("hidden");
+  }
 
-        try {
-          await loadProfile(user);
-          await loadMyPolls(user);
-        } catch (error) {
-          console.error("Profile page auth error:", error);
-        }
-      } else {
-        if (profileAuthView) {
-          profileAuthView.classList.remove("hidden");
-        }
-        if (profileLoggedInView) {
-          profileLoggedInView.classList.add("hidden");
-        }
-      }
-      return;
+  if (user) {
+    if (profileLoggedInView) {
+      profileLoggedInView.classList.remove("hidden");
+    }
+
+    try {
+      await loadProfile(user);
+      await loadMyPolls(user);
+    } catch (error) {
+      console.error("Profile page auth error:", error);
+    }
+  } else {
+    if (profileLoggedInView) {
+      profileLoggedInView.classList.add("hidden");
+    }
+  }
+
+  return;
+}
     }
 
     if (user) {
