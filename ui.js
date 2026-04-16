@@ -20,6 +20,10 @@ export const usernameInput = document.getElementById("username");
 export const saveDetailsBtn = document.getElementById("saveDetailsBtn");
 export const detailsMessage = document.getElementById("detailsMessage");
 
+export const voteMessage = document.getElementById("voteMessage");
+export const voteMessageText = document.getElementById("voteMessageText");
+export const closeVoteMessageBtn = document.getElementById("closeVoteMessageBtn");
+
 export const pollQuestion = document.getElementById("pollQuestion");
 export const pollCategory = document.getElementById("createPollCategory");
 export const pollDuration = document.getElementById("pollDuration");
@@ -28,7 +32,6 @@ export const extraOptions = document.getElementById("extraOptions");
 
 export const pollsDiv = document.getElementById("polls");
 export const pollsCard = document.getElementById("pollsCard");
-export const voteMessage = document.getElementById("voteMessage");
 export const categoryTabs = document.querySelectorAll(".category-tab[data-category]");
 export const openPollsTab = document.getElementById("openPollsTab");
 export const resultsPollsTab = document.getElementById("resultsPollsTab");
@@ -168,7 +171,13 @@ export function showUserDetailsView() {
 // ===== HELPERS =====
 export function showVoteMessage(message, isError = false) {
   if (!voteMessage) return;
-  voteMessage.textContent = message;
+
+  if (voteMessageText) {
+    voteMessageText.textContent = message;
+  } else {
+    voteMessage.textContent = message;
+  }
+
   voteMessage.style.display = "block";
   voteMessage.style.background = isError ? "#fff3f3" : "#f3fff5";
   voteMessage.style.color = isError ? "#b00020" : "#146c2e";
@@ -177,8 +186,14 @@ export function showVoteMessage(message, isError = false) {
 
 export function hideVoteMessage() {
   if (!voteMessage) return;
+
   voteMessage.style.display = "none";
-  voteMessage.textContent = "";
+
+  if (voteMessageText) {
+    voteMessageText.textContent = "";
+  } else {
+    voteMessage.textContent = "";
+  }
 }
 
 export function escapeHtml(text) {
@@ -200,8 +215,15 @@ export function setProfileInputsDisabled(disabled) {
 export function initUi(loadPollsCallback) {
   initMenu();
 
+  if (closeVoteMessageBtn) {
+    closeVoteMessageBtn.addEventListener("click", () => {
+      hideVoteMessage();
+    });
+  }
+
   if (openPollsTab) {
     openPollsTab.addEventListener("click", () => {
+      hideVoteMessage();
       setCurrentPollView("open");
       loadPollsCallback();
     });
@@ -209,6 +231,7 @@ export function initUi(loadPollsCallback) {
 
   if (resultsPollsTab) {
     resultsPollsTab.addEventListener("click", () => {
+      hideVoteMessage();
       setCurrentPollView("results");
       loadPollsCallback();
     });
@@ -216,12 +239,16 @@ export function initUi(loadPollsCallback) {
 
   if (openCreatePollBtn) {
     openCreatePollBtn.addEventListener("click", () => {
+      hideVoteMessage();
       showCreatePollView();
     });
   }
 
   if (cancelCreatePollBtn) {
-    cancelCreatePollBtn.addEventListener("click", showPollsView);
+    cancelCreatePollBtn.addEventListener("click", () => {
+      hideVoteMessage();
+      showPollsView();
+    });
   }
 
   if (addOptionBtn) {
@@ -240,6 +267,7 @@ export function initUi(loadPollsCallback) {
 
   categoryTabs.forEach((tab) => {
     tab.addEventListener("click", () => {
+      hideVoteMessage();
       setSelectedCategory(tab.dataset.category || "Politics");
       categoryTabs.forEach((t) => t.classList.remove("active"));
       tab.classList.add("active");

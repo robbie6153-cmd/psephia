@@ -295,9 +295,6 @@ button {
   display: none !important;
 }
 
-.hidden-until-ready {
-  visibility: hidden;
-}
 
 /* VIEW SPACING */
 #pollsView,
@@ -722,4 +719,21 @@ select {
 
 .danger-button:hover {
   opacity: 0.95;
+}
+.vote-message {
+  position: relative;
+  margin-bottom: 16px;
+  padding: 12px 40px 12px 12px;
+  border-radius: 10px;
+}
+
+.close-btn {
+  position: absolute;
+  top: 6px;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: inherit;
 }
