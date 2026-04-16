@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Psephia App</title>
- <link rel="stylesheet" href="./style.css?v=14" />
+  <link rel="stylesheet" href="./style.css?v=14" />
 </head>
 
 <body>
@@ -24,7 +24,7 @@
       <a href="private.html" class="category-tab">Private</a>
     </div>
 
-            <div id="dropdownMenu" class="dropdown-menu">
+    <div id="dropdownMenu" class="dropdown-menu">
       <a href="index.html" onclick="closeMenu()">Home</a>
       <a href="profile.html" onclick="closeMenu()">My Profile</a>
       <a href="community.html" onclick="closeMenu()">Community Guidelines</a>
@@ -35,7 +35,7 @@
 
   <div class="category-more-hint">← Swipe for more categories →</div>
 
-<main class="app-page"></main>
+  <main class="app-page">
     <h1>Psephia</h1>
 
     <section id="userDetailsView" class="hidden">
@@ -53,20 +53,20 @@
       </div>
     </section>
 
-  <section id="pollsView">
-  <div id="pollsCard" class="card polls-card mode-open">
-    <h2>Polls</h2>
+    <section id="pollsView">
+      <div id="pollsCard" class="card polls-card mode-open">
+        <h2>Polls</h2>
 
-    <div class="poll-folder-tabs">
-      <button id="openPollsTab" class="poll-folder-tab active" type="button">Polls (Open)</button>
-      <button id="resultsPollsTab" class="poll-folder-tab" type="button">Polls (Results)</button>
-    </div>
+        <div class="poll-folder-tabs">
+          <button id="openPollsTab" class="poll-folder-tab active" type="button">Polls (Open)</button>
+          <button id="resultsPollsTab" class="poll-folder-tab" type="button">Polls (Results)</button>
+        </div>
 
-    <div id="voteMessage" style="display:none; margin-bottom:16px; padding:12px;"></div>
+        <div id="voteMessage" style="display:none; margin-bottom:16px; padding:12px;"></div>
 
-    <div id="polls"></div>
-  </div>
-</section>
+        <div id="polls"></div>
+      </div>
+    </section>
 
     <section id="createPollView" class="hidden">
       <div class="card">
@@ -118,6 +118,6 @@
     </button>
   </main>
 
-  <script type="module" src="./script.js?v=14"></script>
+  <script type="module" src="./auth.js?v=14"></script>
 </body>
 </html>
