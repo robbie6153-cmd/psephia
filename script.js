@@ -39,9 +39,7 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-const path = window.location.pathname;
-const isProfilePage = path.endsWith("profile.html");
-const isAppPage = path.endsWith("app.html") || path === "/" || path.endsWith("/app.html");
+const isProfilePage = window.location.pathname.endsWith("profile.html");
 
 // ===== EMAIL LINK SIGN-IN =====
 if (isSignInWithEmailLink(auth, window.location.href)) {
@@ -55,7 +53,7 @@ if (isSignInWithEmailLink(auth, window.location.href)) {
     signInWithEmailLink(auth, email, window.location.href)
       .then(() => {
         localStorage.removeItem("emailForSignIn");
-        window.history.replaceState({}, document.title, "app.html");
+        window.history.replaceState({}, document.title, "profile.html");
       })
       .catch((error) => {
         console.error("Sign-in error:", error);
@@ -67,7 +65,7 @@ if (isSignInWithEmailLink(auth, window.location.href)) {
   }
 }
 
-// ===== COMMON PAGE =====
+// ===== COMMON =====
 const appPage = document.querySelector(".app-page");
 
 // ===== APP PAGE ELEMENTS =====
@@ -98,17 +96,18 @@ const categoryTabs = document.querySelectorAll(".category-tab[data-category]");
 const openPollsTab = document.getElementById("openPollsTab");
 const resultsPollsTab = document.getElementById("resultsPollsTab");
 
-// ===== OLD AUTH ELEMENTS (may not exist) =====
+// ===== PROFILE PAGE ELEMENTS =====
+const profileAuthView = document.getElementById("profileAuthView");
+const profileLoggedInView = document.getElementById("profileLoggedInView");
+
 const emailInput = document.getElementById("email");
 const passwordInput = document.getElementById("password");
 const signUpBtn = document.getElementById("signUpBtn");
 const loginBtn = document.getElementById("loginBtn");
 const forgotPasswordBtn = document.getElementById("forgotPasswordBtn");
-const logoutBtn = document.getElementById("logout");
-const statusText = document.getElementById("status");
+const logoutBtn = document.getElementById("logoutBtn");
 const loginMessage = document.getElementById("loginMessage");
 
-// ===== PROFILE PAGE ELEMENTS =====
 const profileFirstName = document.getElementById("profileFirstName");
 const profileLastName = document.getElementById("profileLastName");
 const profileCountry = document.getElementById("profileCountry");
@@ -129,29 +128,22 @@ let optionCount = 2;
 // ===== MENU =====
 function closeMenu() {
   const menu = document.getElementById("dropdownMenu");
-  if (menu) {
-    menu.classList.remove("show");
-  }
+  if (menu) menu.classList.remove("show");
 }
-
 window.closeMenu = closeMenu;
 
 window.toggleMenu = function () {
   const menu = document.getElementById("dropdownMenu");
-  if (menu) {
-    menu.classList.toggle("show");
-  }
+  if (menu) menu.classList.toggle("show");
 };
 
 document.addEventListener("click", (event) => {
   const menu = document.getElementById("dropdownMenu");
   const topBar = document.querySelector(".top-bar");
-
   if (menu && topBar && !topBar.contains(event.target)) {
     menu.classList.remove("show");
   }
 });
-
 // ===== APP VIEW HELPERS =====
 function showPollsView() {
   if (userDetailsView) userDetailsView.classList.add("hidden");
@@ -165,8 +157,6 @@ function showPollsView() {
       openCreatePollBtn.classList.add("hidden");
     }
   }
-
-  window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 function showCreatePollView() {
@@ -179,8 +169,6 @@ function showCreatePollView() {
   if (pollsView) pollsView.classList.add("hidden");
   if (createPollView) createPollView.classList.remove("hidden");
   if (openCreatePollBtn) openCreatePollBtn.classList.add("hidden");
-
-  window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 function showUserDetailsView() {
@@ -188,8 +176,6 @@ function showUserDetailsView() {
   if (createPollView) createPollView.classList.add("hidden");
   if (openCreatePollBtn) openCreatePollBtn.classList.add("hidden");
   if (userDetailsView) userDetailsView.classList.remove("hidden");
-
-  window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 function setPollView(view) {
@@ -200,66 +186,42 @@ function setPollView(view) {
     pollsCard.classList.toggle("mode-results", view === "results");
   }
 
-  if (openPollsTab) {
-    openPollsTab.classList.toggle("active", view === "open");
-  }
-
-  if (resultsPollsTab) {
-    resultsPollsTab.classList.toggle("active", view === "results");
-  }
+  if (openPollsTab) openPollsTab.classList.toggle("active", view === "open");
+  if (resultsPollsTab) resultsPollsTab.classList.toggle("active", view === "results");
 
   loadPolls();
 }
 
-if (openPollsTab) {
-  openPollsTab.addEventListener("click", () => setPollView("open"));
-}
-
-if (resultsPollsTab) {
-  resultsPollsTab.addEventListener("click", () => setPollView("results"));
-}
-
-if (openCreatePollBtn) {
-  openCreatePollBtn.addEventListener("click", showCreatePollView);
-}
-
-if (cancelCreatePollBtn) {
-  cancelCreatePollBtn.addEventListener("click", showPollsView);
-}
+if (openPollsTab) openPollsTab.addEventListener("click", () => setPollView("open"));
+if (resultsPollsTab) resultsPollsTab.addEventListener("click", () => setPollView("results"));
+if (openCreatePollBtn) openCreatePollBtn.addEventListener("click", showCreatePollView);
+if (cancelCreatePollBtn) cancelCreatePollBtn.addEventListener("click", showPollsView);
 
 if (addOptionBtn) {
   addOptionBtn.addEventListener("click", () => {
-    if (!extraOptions) return;
-    if (optionCount >= 5) return;
-
+    if (!extraOptions || optionCount >= 5) return;
     optionCount += 1;
 
     const input = document.createElement("input");
     input.type = "text";
     input.placeholder = `Option ${optionCount}`;
     input.className = "poll-option";
-
     extraOptions.appendChild(input);
   });
 }
 
 categoryTabs.forEach((tab) => {
   tab.addEventListener("click", () => {
-    const category = tab.dataset.category || "Politics";
-
-    selectedCategory = category;
-
+    selectedCategory = tab.dataset.category || "Politics";
     categoryTabs.forEach((t) => t.classList.remove("active"));
     tab.classList.add("active");
-
     loadPolls();
   });
 });
 
-// ===== GENERIC HELPERS =====
+// ===== HELPERS =====
 function showVoteMessage(message, isError = false) {
   if (!voteMessage) return;
-
   voteMessage.textContent = message;
   voteMessage.style.display = "block";
   voteMessage.style.background = isError ? "#fff3f3" : "#f3fff5";
@@ -281,11 +243,7 @@ function escapeHtml(text) {
 
 function getEndsAtDate(pollData) {
   if (!pollData?.closesAt) return null;
-
-  if (typeof pollData.closesAt.toDate === "function") {
-    return pollData.closesAt.toDate();
-  }
-
+  if (typeof pollData.closesAt.toDate === "function") return pollData.closesAt.toDate();
   const date = new Date(pollData.closesAt);
   return Number.isNaN(date.getTime()) ? null : date;
 }
@@ -308,16 +266,9 @@ function formatTimeRemainingFromMs(ms) {
   return `Voting on this ends in ${days} day${days !== 1 ? "s" : ""}, ${hours} hour${hours !== 1 ? "s" : ""}, ${minutes} minute${minutes !== 1 ? "s" : ""} and ${seconds} second${seconds !== 1 ? "s" : ""}`;
 }
 
-function formatTimeRemaining(endsAtDate) {
-  return formatTimeRemainingFromMs(endsAtDate.getTime() - Date.now());
-}
-
 function getTimeRemainingText(targetDate) {
   const diff = targetDate.getTime() - Date.now();
-
-  if (diff <= 0) {
-    return "0 minutes";
-  }
+  if (diff <= 0) return "0 minutes";
 
   const totalSeconds = Math.floor(diff / 1000);
   const days = Math.floor(totalSeconds / 86400);
@@ -333,7 +284,6 @@ function getPollResultsHtml(pollData) {
   const votes = pollData.votes && typeof pollData.votes === "object" ? pollData.votes : {};
 
   let totalVotes = 0;
-
   options.forEach((option) => {
     totalVotes += typeof votes[option] === "number" ? votes[option] : 0;
   });
@@ -343,30 +293,18 @@ function getPollResultsHtml(pollData) {
   }
 
   if (totalVotes === 0) {
-    return `
-      <div class="poll-results">
-        ${options.map((option) => `<p>${escapeHtml(option)}: 0%</p>`).join("")}
-      </div>
-    `;
+    return `<div class="poll-results">${options.map((option) => `<p>${escapeHtml(option)}: 0%</p>`).join("")}</div>`;
   }
 
-  return `
-    <div class="poll-results">
-      ${options
-        .map((option) => {
-          const count = typeof votes[option] === "number" ? votes[option] : 0;
-          const percent = Math.round((count / totalVotes) * 100);
-          return `<p>${escapeHtml(option)}: ${percent}%</p>`;
-        })
-        .join("")}
-    </div>
-  `;
+  return `<div class="poll-results">${options.map((option) => {
+    const count = typeof votes[option] === "number" ? votes[option] : 0;
+    const percent = Math.round((count / totalVotes) * 100);
+    return `<p>${escapeHtml(option)}: ${percent}%</p>`;
+  }).join("")}</div>`;
 }
 
 function startCountdownUpdater() {
-  if (countdownInterval) {
-    clearInterval(countdownInterval);
-  }
+  if (countdownInterval) clearInterval(countdownInterval);
 
   countdownInterval = setInterval(() => {
     const timerEls = document.querySelectorAll(".poll-timer[data-end-time]");
@@ -374,7 +312,6 @@ function startCountdownUpdater() {
     timerEls.forEach((el) => {
       const endTime = Number(el.dataset.endTime);
       const timerType = el.dataset.timerType || "open";
-
       if (!endTime) return;
 
       const remaining = endTime - Date.now();
@@ -393,12 +330,17 @@ function startCountdownUpdater() {
     });
   }, 1000);
 }
+// ===== PROFILE HELPERS =====
+function setProfileInputsDisabled(disabled) {
+  if (!profileFirstName) return;
+  profileFirstName.disabled = disabled;
+  profileLastName.disabled = disabled;
+  profileCountry.disabled = disabled;
+  profileUsername.disabled = disabled;
+}
 
 async function saveUserDetails() {
-  if (!auth.currentUser) {
-    if (detailsMessage) detailsMessage.textContent = "You must be logged in first.";
-    return;
-  }
+  if (!auth.currentUser) return;
 
   const firstName = firstNameInput?.value.trim() || "";
   const lastName = lastNameInput?.value.trim() || "";
@@ -410,15 +352,7 @@ async function saveUserDetails() {
     return;
   }
 
-  if (username.includes(" ")) {
-    if (detailsMessage) detailsMessage.textContent = "Username cannot contain spaces.";
-    return;
-  }
-
   try {
-    if (saveDetailsBtn) saveDetailsBtn.disabled = true;
-    if (detailsMessage) detailsMessage.textContent = "Saving details...";
-
     await setDoc(doc(db, "users", auth.currentUser.uid), {
       uid: auth.currentUser.uid,
       email: auth.currentUser.email,
@@ -429,14 +363,11 @@ async function saveUserDetails() {
     });
 
     if (detailsMessage) detailsMessage.textContent = "Details saved.";
-
     showPollsView();
     await loadPolls();
   } catch (error) {
     console.error("Save details error:", error);
     if (detailsMessage) detailsMessage.textContent = "Could not save your details.";
-  } finally {
-    if (saveDetailsBtn) saveDetailsBtn.disabled = false;
   }
 }
 
@@ -444,67 +375,37 @@ if (saveDetailsBtn) {
   saveDetailsBtn.addEventListener("click", saveUserDetails);
 }
 
-function setProfileInputsDisabled(disabled) {
-  if (!profileFirstName) return;
-
-  profileFirstName.disabled = disabled;
-  profileLastName.disabled = disabled;
-  profileCountry.disabled = disabled;
-  profileUsername.disabled = disabled;
-}
-// ===== PROFILE PAGE =====
 async function loadProfile(user) {
   if (!user || !profileFirstName) return;
 
   try {
-    const userRef = doc(db, "users", user.uid);
-    const userSnap = await getDoc(userRef);
+    const snap = await getDoc(doc(db, "users", user.uid));
+    if (!snap.exists()) return;
 
-    if (!userSnap.exists()) return;
-
-    const data = userSnap.data();
-
+    const data = snap.data();
     profileFirstName.value = data.firstName || "";
     profileLastName.value = data.lastName || "";
     profileCountry.value = data.country || "";
     profileUsername.value = data.username || "";
 
     setProfileInputsDisabled(true);
-
-    if (saveProfileDetailsBtn) {
-      saveProfileDetailsBtn.classList.add("hidden");
-    }
-
-    if (profileMessage) {
-      profileMessage.textContent = "";
-    }
+    if (saveProfileDetailsBtn) saveProfileDetailsBtn.classList.add("hidden");
+    if (profileMessage) profileMessage.textContent = "";
   } catch (error) {
     console.error("Load profile error:", error);
-    if (profileMessage) {
-      profileMessage.textContent = "Could not load profile details.";
-    }
   }
 }
 
 async function saveProfileDetails(user) {
-  if (!user || !profileFirstName) return;
+  if (!user) return;
 
-  const firstName = profileFirstName.value.trim();
-  const lastName = profileLastName.value.trim();
-  const country = profileCountry.value.trim();
-  const username = profileUsername.value.trim();
+  const firstName = profileFirstName?.value.trim() || "";
+  const lastName = profileLastName?.value.trim() || "";
+  const country = profileCountry?.value.trim() || "";
+  const username = profileUsername?.value.trim() || "";
 
   if (!firstName || !lastName || !country || !username) {
-    if (profileMessage) {
-      profileMessage.textContent = "Please complete all fields.";
-    }
-    return;
-  }
-
-  if (username.includes(" ")) {
-    if (profileMessage) {
-      profileMessage.textContent = "Username cannot contain spaces.";
-    }
+    if (profileMessage) profileMessage.textContent = "Please complete all fields.";
     return;
   }
 
@@ -516,20 +417,12 @@ async function saveProfileDetails(user) {
       username
     });
 
-    if (profileMessage) {
-      profileMessage.textContent = "Details saved successfully.";
-    }
-
+    if (profileMessage) profileMessage.textContent = "Details saved successfully.";
     setProfileInputsDisabled(true);
-
-    if (saveProfileDetailsBtn) {
-      saveProfileDetailsBtn.classList.add("hidden");
-    }
+    if (saveProfileDetailsBtn) saveProfileDetailsBtn.classList.add("hidden");
   } catch (error) {
     console.error("Save profile error:", error);
-    if (profileMessage) {
-      profileMessage.textContent = "Could not save details.";
-    }
+    if (profileMessage) profileMessage.textContent = "Could not save details.";
   }
 }
 
@@ -540,7 +433,6 @@ async function loadMyPolls(user) {
 
   try {
     const snap = await getDocs(query(collection(db, "polls"), orderBy("createdAt", "desc")));
-
     const myDocs = snap.docs.filter((pollDoc) => {
       const poll = pollDoc.data();
       return poll.createdByUid === user.uid;
@@ -564,7 +456,6 @@ async function loadMyPolls(user) {
             <h3>${escapeHtml(poll.question || "Untitled poll")}</h3>
             <p><strong>Category:</strong> ${escapeHtml(poll.category || "Other")}</p>
           </div>
-
           <div class="poll-menu-wrapper">
             <button class="poll-menu-btn" type="button" data-poll-menu="${pollId}">⋯</button>
             <div class="poll-menu-dropdown" id="pollMenu-${pollId}">
@@ -585,34 +476,23 @@ async function loadMyPolls(user) {
 }
 
 function attachMyPollMenuEvents() {
-  const menuButtons = document.querySelectorAll("[data-poll-menu]");
-  const deleteButtons = document.querySelectorAll("[data-delete-poll]");
-
-  menuButtons.forEach((button) => {
+  document.querySelectorAll("[data-poll-menu]").forEach((button) => {
     button.addEventListener("click", (event) => {
       event.stopPropagation();
-
       const pollId = button.getAttribute("data-poll-menu");
       const menu = document.getElementById(`pollMenu-${pollId}`);
-
-      document.querySelectorAll(".poll-menu-dropdown.show").forEach((openMenu) => {
-        if (openMenu !== menu) {
-          openMenu.classList.remove("show");
-        }
-      });
-
-      if (menu) {
-        menu.classList.toggle("show");
-      }
+      document.querySelectorAll(".poll-menu-dropdown.show").forEach((m) => m.classList.remove("show"));
+      if (menu) menu.classList.toggle("show");
     });
   });
 
-  deleteButtons.forEach((button) => {
+  document.querySelectorAll("[data-delete-poll]").forEach((button) => {
     button.addEventListener("click", async () => {
       const pollId = button.getAttribute("data-delete-poll");
-      const confirmed = confirm("Are you sure you want to delete this poll?");
+      if (!pollId) return;
 
-      if (!confirmed || !pollId) return;
+      const confirmed = confirm("Are you sure you want to delete this poll?");
+      if (!confirmed) return;
 
       try {
         await deleteDoc(doc(db, "polls", pollId));
@@ -630,7 +510,6 @@ document.addEventListener("click", () => {
     menu.classList.remove("show");
   });
 });
-
 async function deleteProfile(user) {
   if (!user) return;
 
@@ -651,21 +530,12 @@ async function deleteProfile(user) {
         continue;
       }
 
-      const userVotes =
-        poll.userVotes && typeof poll.userVotes === "object"
-          ? { ...poll.userVotes }
-          : {};
-
-      const votes =
-        poll.votes && typeof poll.votes === "object"
-          ? { ...poll.votes }
-          : {};
-
+      const userVotes = poll.userVotes && typeof poll.userVotes === "object" ? { ...poll.userVotes } : {};
+      const votes = poll.votes && typeof poll.votes === "object" ? { ...poll.votes } : {};
       const votedBy = Array.isArray(poll.votedBy) ? [...poll.votedBy] : [];
 
       if (userVotes[user.uid]) {
         const chosenOption = userVotes[user.uid];
-
         if (typeof votes[chosenOption] === "number" && votes[chosenOption] > 0) {
           votes[chosenOption] -= 1;
         }
@@ -673,9 +543,7 @@ async function deleteProfile(user) {
         delete userVotes[user.uid];
 
         const index = votedBy.indexOf(user.uid);
-        if (index !== -1) {
-          votedBy.splice(index, 1);
-        }
+        if (index !== -1) votedBy.splice(index, 1);
 
         await updateDoc(doc(db, "polls", pollDoc.id), {
           votes,
@@ -687,14 +555,11 @@ async function deleteProfile(user) {
 
     await deleteDoc(doc(db, "users", user.uid));
     await deleteUser(user);
-
     window.location.href = "index.html";
   } catch (error) {
     console.error("Delete profile error:", error);
-
     if (deleteProfileMessage) {
-      deleteProfileMessage.textContent =
-        "Could not delete profile. You may need to log in again before deleting.";
+      deleteProfileMessage.textContent = "Could not delete profile. You may need to log in again before deleting.";
     }
   }
 }
@@ -702,70 +567,59 @@ async function deleteProfile(user) {
 if (editDetailsBtn) {
   editDetailsBtn.addEventListener("click", () => {
     setProfileInputsDisabled(false);
-
-    if (saveProfileDetailsBtn) {
-      saveProfileDetailsBtn.classList.remove("hidden");
-    }
-
-    if (profileMessage) {
-      profileMessage.textContent = "";
-    }
+    if (saveProfileDetailsBtn) saveProfileDetailsBtn.classList.remove("hidden");
+    if (profileMessage) profileMessage.textContent = "";
   });
 }
 
 if (saveProfileDetailsBtn) {
   saveProfileDetailsBtn.addEventListener("click", async () => {
-    const user = auth.currentUser;
-    if (!user) return;
-    await saveProfileDetails(user);
+    if (auth.currentUser) await saveProfileDetails(auth.currentUser);
   });
 }
 
 if (deleteProfileBtn) {
   deleteProfileBtn.addEventListener("click", async () => {
-    const user = auth.currentUser;
-    if (!user) return;
-    await deleteProfile(user);
+    if (auth.currentUser) await deleteProfile(auth.currentUser);
   });
 }
 
-// ===== OPTIONAL LEGACY AUTH BUTTONS =====
+if (logoutBtn) {
+  logoutBtn.addEventListener("click", async () => {
+    try {
+      await signOut(auth);
+      window.location.href = "profile.html";
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+  });
+}
+
 if (signUpBtn) {
   signUpBtn.addEventListener("click", async () => {
-    const email = emailInput?.value.trim();
+    const email = emailInput?.value.trim() || "";
 
     if (!email) {
       if (loginMessage) loginMessage.textContent = "Please enter your email.";
       return;
     }
 
-    signUpBtn.disabled = true;
-    if (loginBtn) loginBtn.disabled = true;
-    if (forgotPasswordBtn) forgotPasswordBtn.disabled = true;
     if (loginMessage) loginMessage.textContent = "Sending sign-in link...";
 
-    const actionCodeSettings = {
-      url: "https://psephia.com/app.html",
-      handleCodeInApp: true
-    };
-
     try {
-      await sendSignInLinkToEmail(auth, email, actionCodeSettings);
+      await sendSignInLinkToEmail(auth, email, {
+        url: "https://psephia.com/profile.html",
+        handleCodeInApp: true
+      });
+
       localStorage.setItem("emailForSignIn", email);
 
       if (loginMessage) {
-        loginMessage.innerHTML = `
-          We’ve sent you a sign-in link.<br><br>
-          Click the link in your email to continue.
-        `;
+        loginMessage.innerHTML = `We’ve sent you a sign-in link.<br><br>Click the link in your email to continue.`;
       }
     } catch (error) {
       console.error(error);
       if (loginMessage) loginMessage.textContent = error.message || "Error sending link.";
-    } finally {
-      signUpBtn.disabled = false;
-      if (loginBtn) loginBtn.disabled = false;
-      if (forgotPasswordBtn) forgotPasswordBtn.disabled = false;
     }
   });
 }
@@ -780,9 +634,6 @@ if (loginBtn) {
       return;
     }
 
-    if (signUpBtn) signUpBtn.disabled = true;
-    loginBtn.disabled = true;
-    if (forgotPasswordBtn) forgotPasswordBtn.disabled = true;
     if (loginMessage) loginMessage.textContent = "Logging in...";
 
     try {
@@ -795,25 +646,10 @@ if (loginBtn) {
         return;
       }
 
-      if (loginMessage) loginMessage.textContent = "Login successful.";
+      window.location.href = "app.html";
     } catch (error) {
       console.error("Login error:", error);
-
-      if (
-        error.code === "auth/invalid-credential" ||
-        error.code === "auth/wrong-password" ||
-        error.code === "auth/user-not-found"
-      ) {
-        if (loginMessage) loginMessage.textContent = "Incorrect email or password.";
-      } else if (error.code === "auth/invalid-email") {
-        if (loginMessage) loginMessage.textContent = "Please enter a valid email address.";
-      } else {
-        if (loginMessage) loginMessage.textContent = error.message || "Could not log in.";
-      }
-    } finally {
-      if (signUpBtn) signUpBtn.disabled = false;
-      loginBtn.disabled = false;
-      if (forgotPasswordBtn) forgotPasswordBtn.disabled = false;
+      if (loginMessage) loginMessage.textContent = "Incorrect email or password.";
     }
   });
 }
@@ -823,56 +659,27 @@ if (forgotPasswordBtn) {
     const email = emailInput?.value.trim() || "";
 
     if (!email) {
-      if (loginMessage) {
-        loginMessage.textContent = "Enter your email address first, then press Forgot Password.";
-      }
+      if (loginMessage) loginMessage.textContent = "Enter your email address first.";
       return;
     }
 
-    forgotPasswordBtn.disabled = true;
-    if (signUpBtn) signUpBtn.disabled = true;
-    if (loginBtn) loginBtn.disabled = true;
     if (loginMessage) loginMessage.textContent = "Sending password reset email...";
 
     try {
       await sendPasswordResetEmail(auth, email, {
-        url: `${window.location.origin}/app.html`
+        url: `${window.location.origin}/profile.html`
       });
 
       if (loginMessage) {
-        loginMessage.innerHTML = `
-          We have sent you a password reset email.<br><br>
-          Please use the newest email if you requested more than one reset link.
-        `;
+        loginMessage.innerHTML = `We have sent you a password reset email.<br><br>Please use the newest email if you requested more than one reset link.`;
       }
     } catch (error) {
       console.error("Password reset error:", error);
-
-      if (error.code === "auth/invalid-email") {
-        if (loginMessage) loginMessage.textContent = "Please enter a valid email address.";
-      } else {
-        if (loginMessage) loginMessage.textContent = error.message || "Could not send password reset email.";
-      }
-    } finally {
-      forgotPasswordBtn.disabled = false;
-      if (signUpBtn) signUpBtn.disabled = false;
-      if (loginBtn) loginBtn.disabled = false;
+      if (loginMessage) loginMessage.textContent = error.message || "Could not send password reset email.";
     }
   });
 }
 
-if (logoutBtn) {
-  logoutBtn.addEventListener("click", async () => {
-    try {
-      await signOut(auth);
-      window.location.href = "index.html";
-    } catch (error) {
-      console.error("Logout error:", error);
-    }
-  });
-}
-
-// ===== CREATE POLL =====
 if (submitPollBtn) {
   submitPollBtn.addEventListener("click", async () => {
     const question = pollQuestion?.value.trim() || "";
@@ -885,9 +692,7 @@ if (submitPollBtn) {
     }
 
     const optionInputs = document.querySelectorAll(".poll-option");
-    const options = [...optionInputs]
-      .map((input) => input.value.trim())
-      .filter((value) => value !== "");
+    const options = [...optionInputs].map((input) => input.value.trim()).filter((value) => value !== "");
 
     if (!question) {
       alert("Please enter a question.");
@@ -913,7 +718,6 @@ if (submitPollBtn) {
       }
 
       const creatorData = userDoc.data();
-      const creatorUsername = creatorData.username || "Anonymous";
 
       await addDoc(collection(db, "polls"), {
         question,
@@ -921,7 +725,7 @@ if (submitPollBtn) {
         options,
         createdAt: Timestamp.fromDate(createdAt),
         closesAt: Timestamp.fromDate(closesAt),
-        createdBy: creatorUsername,
+        createdBy: creatorData.username || "Anonymous",
         createdByUid: user.uid,
         votes: {},
         userVotes: {},
@@ -933,15 +737,10 @@ if (submitPollBtn) {
       if (pollDuration) pollDuration.value = "1";
 
       document.querySelectorAll(".poll-option").forEach((input, index) => {
-        if (index < 2) {
-          input.value = "";
-        }
+        if (index < 2) input.value = "";
       });
 
-      if (extraOptions) {
-        extraOptions.innerHTML = "";
-      }
-
+      if (extraOptions) extraOptions.innerHTML = "";
       optionCount = 2;
 
       hideVoteMessage();
@@ -954,14 +753,11 @@ if (submitPollBtn) {
   });
 }
 
-// ===== LOAD POLLS =====
 async function loadPolls() {
   if (!pollsDiv) return;
 
   try {
-    const q = query(collection(db, "polls"), orderBy("createdAt", "desc"));
-    const snap = await getDocs(q);
-
+    const snap = await getDocs(query(collection(db, "polls"), orderBy("createdAt", "desc")));
     pollsDiv.innerHTML = "";
 
     if (snap.empty) {
@@ -976,9 +772,7 @@ async function loadPolls() {
     snap.forEach((docItem) => {
       const p = docItem.data();
 
-      if ((p.category || "Politics") !== selectedCategory) {
-        return;
-      }
+      if ((p.category || "Politics") !== selectedCategory) return;
 
       const options = Array.isArray(p.options) ? p.options : [];
       const selectedOption =
@@ -1000,33 +794,21 @@ async function loadPolls() {
         }
       }
 
-      if (!showThisPoll) {
-        return;
-      }
+      if (!showThisPoll) return;
 
       hasVisiblePolls = true;
 
       let timerHtml = "";
 
       if (currentPollView === "open") {
-        if (endsAtDate) {
-          timerHtml = `
-            <p class="poll-timer" data-end-time="${endsAtDate.getTime()}" data-timer-type="open">
-              ${escapeHtml(formatTimeRemaining(endsAtDate))}
-            </p>
-          `;
-        } else {
-          timerHtml = `<p class="poll-timer">No end time set</p>`;
-        }
+        timerHtml = endsAtDate
+          ? `<p class="poll-timer" data-end-time="${endsAtDate.getTime()}" data-timer-type="open">${escapeHtml(formatTimeRemainingFromMs(endsAtDate.getTime() - Date.now()))}</p>`
+          : `<p class="poll-timer">No end time set</p>`;
       }
 
       if (currentPollView === "results" && endsAtDate) {
         const resultsExpiryDate = new Date(endsAtDate.getTime() + 24 * 60 * 60 * 1000);
-        timerHtml = `
-          <p class="poll-timer" data-end-time="${resultsExpiryDate.getTime()}" data-timer-type="results">
-            Results disappear in ${escapeHtml(getTimeRemainingText(resultsExpiryDate))}
-          </p>
-        `;
+        timerHtml = `<p class="poll-timer" data-end-time="${resultsExpiryDate.getTime()}" data-timer-type="results">Results disappear in ${escapeHtml(getTimeRemainingText(resultsExpiryDate))}</p>`;
       }
 
       let contentHtml = "";
@@ -1034,22 +816,15 @@ async function loadPolls() {
       if (currentPollView === "results") {
         contentHtml = getPollResultsHtml(p);
       } else {
-        contentHtml = options
-          .map((option) => {
-            const isSelected = selectedOption === option;
-
-            return `
-              <div
-                class="vote-option${isSelected ? " selected" : ""}"
-                data-poll-id="${docItem.id}"
-                data-option="${encodeURIComponent(option)}"
-              >
-                <span class="vote-tick">${isSelected ? "✔" : "✓"}</span>
-                <span class="vote-text">${escapeHtml(option)}</span>
-              </div>
-            `;
-          })
-          .join("");
+        contentHtml = options.map((option) => {
+          const isSelected = selectedOption === option;
+          return `
+            <div class="vote-option${isSelected ? " selected" : ""}" data-poll-id="${docItem.id}" data-option="${encodeURIComponent(option)}">
+              <span class="vote-tick">${isSelected ? "✔" : "✓"}</span>
+              <span class="vote-text">${escapeHtml(option)}</span>
+            </div>
+          `;
+        }).join("");
       }
 
       pollsDiv.innerHTML += `
@@ -1063,10 +838,9 @@ async function loadPolls() {
     });
 
     if (!hasVisiblePolls) {
-      pollsDiv.innerHTML =
-        currentPollView === "open"
-          ? "<p>No open polls in this category yet.</p>"
-          : "<p>No recent results in this category yet.</p>";
+      pollsDiv.innerHTML = currentPollView === "open"
+        ? "<p>No open polls in this category yet.</p>"
+        : "<p>No recent results in this category yet.</p>";
     }
 
     startCountdownUpdater();
@@ -1076,22 +850,14 @@ async function loadPolls() {
   }
 }
 
-// ===== VOTING =====
 if (pollsDiv) {
   pollsDiv.addEventListener("click", async (event) => {
     const optionEl = event.target.closest(".vote-option");
-
-    if (!optionEl || !pollsDiv.contains(optionEl)) {
-      return;
-    }
+    if (!optionEl || !pollsDiv.contains(optionEl)) return;
 
     const pollId = optionEl.dataset.pollId;
     const encodedOption = optionEl.dataset.option;
-
-    if (!pollId || typeof encodedOption !== "string") {
-      showVoteMessage("There was a problem reading that vote option.", true);
-      return;
-    }
+    if (!pollId || typeof encodedOption !== "string") return;
 
     const option = decodeURIComponent(encodedOption);
     await voteOnPoll(pollId, option);
@@ -1123,16 +889,8 @@ async function voteOnPoll(pollId, option) {
       return;
     }
 
-    const userVotes =
-      selectedPoll.userVotes && typeof selectedPoll.userVotes === "object"
-        ? { ...selectedPoll.userVotes }
-        : {};
-
-    const votes =
-      selectedPoll.votes && typeof selectedPoll.votes === "object"
-        ? { ...selectedPoll.votes }
-        : {};
-
+    const userVotes = selectedPoll.userVotes && typeof selectedPoll.userVotes === "object" ? { ...selectedPoll.userVotes } : {};
+    const votes = selectedPoll.votes && typeof selectedPoll.votes === "object" ? { ...selectedPoll.votes } : {};
     const votedBy = Array.isArray(selectedPoll.votedBy) ? [...selectedPoll.votedBy] : [];
 
     if (userVotes[user.uid]) {
@@ -1148,11 +906,7 @@ async function voteOnPoll(pollId, option) {
       votedBy.push(user.uid);
     }
 
-    await updateDoc(pollRef, {
-      votes,
-      userVotes,
-      votedBy
-    });
+    await updateDoc(pollRef, { votes, userVotes, votedBy });
 
     showVoteMessage("Your vote has been received.", false);
     await loadPolls();
@@ -1162,28 +916,33 @@ async function voteOnPoll(pollId, option) {
   }
 }
 
-// ===== AUTH STATE =====
 onAuthStateChanged(auth, async (user) => {
   if (appPage) {
     appPage.classList.remove("hidden-until-ready");
     appPage.style.visibility = "visible";
   }
 
-  if (user) {
-    try {
-      const userRef = doc(db, "users", user.uid);
-      const userSnap = await getDoc(userRef);
+  if (isProfilePage) {
+    if (user) {
+      if (profileAuthView) profileAuthView.classList.add("hidden");
+      if (profileLoggedInView) profileLoggedInView.classList.remove("hidden");
 
-      if (isProfilePage) {
-        if (!userSnap.exists()) {
-          window.location.href = "app.html";
-          return;
-        }
-
+      try {
         await loadProfile(user);
         await loadMyPolls(user);
-        return;
+      } catch (error) {
+        console.error(error);
       }
+    } else {
+      if (profileAuthView) profileAuthView.classList.remove("hidden");
+      if (profileLoggedInView) profileLoggedInView.classList.add("hidden");
+    }
+    return;
+  }
+
+  if (user) {
+    try {
+      const userSnap = await getDoc(doc(db, "users", user.uid));
 
       if (userSnap.exists()) {
         showPollsView();
@@ -1193,23 +952,10 @@ onAuthStateChanged(auth, async (user) => {
       }
     } catch (error) {
       console.error("Profile check error:", error);
-
-      if (isProfilePage) {
-        window.location.href = "app.html";
-      } else {
-        showUserDetailsView();
-      }
+      showUserDetailsView();
     }
   } else {
-    if (openCreatePollBtn) {
-      openCreatePollBtn.classList.add("hidden");
-    }
-
-    if (isProfilePage) {
-      window.location.href = "app.html";
-      return;
-    }
-
+    if (openCreatePollBtn) openCreatePollBtn.classList.add("hidden");
     hideVoteMessage();
     showPollsView();
     await loadPolls();
