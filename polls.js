@@ -1,4 +1,4 @@
-import { auth, db } from "./firebase.js";
+import { auth, db, analytics } from "./firebase.js";
 import {
   collection,
   addDoc,
@@ -12,6 +12,7 @@ import {
   setDoc,
   deleteDoc
 } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+import { logEvent } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-analytics.js";
 
 import {
   pollsDiv,
@@ -39,6 +40,15 @@ import {
 } from "./ui.js";
 
 let countdownInterval = null;
+
+function trackEvent(eventName, eventData = {}) {
+  try {
+    if (!analytics) return;
+    logEvent(analytics, eventName, eventData);
+  } catch (error) {
+    console.error(`Analytics error for ${eventName}:`, error);
+  }
+}
 
 export function getEndsAtDate(pollData) {
   if (!pollData?.closesAt) return null;
@@ -151,6 +161,11 @@ export async function saveUserDetails() {
       lastName,
       country,
       username
+    });
+
+    trackEvent("signup_complete", {
+      username_length: username.length,
+      country: country
     });
 
     if (detailsMessage) detailsMessage.textContent = "Details saved.";
@@ -304,6 +319,13 @@ export async function voteOnPoll(pollId, option) {
     }
 
     await updateDoc(pollRef, { votes, userVotes, votedBy });
+
+    trackEvent("vote_submitted", {
+      poll_id: pollId,
+      category: selectedPoll.category || "Unknown",
+      option_text_length: option.length,
+      option_count: Array.isArray(selectedPoll.options) ? selectedPoll.options.length : 0
+    });
 
     showVoteMessage("Your vote has been received.", false);
     await loadPolls();
@@ -483,7 +505,7 @@ export function initPollEvents() {
 
         const creatorData = userDoc.data();
 
-        await addDoc(collection(db, "polls"), {
+        const newPollRef = await addDoc(collection(db, "polls"), {
           question,
           category,
           options,
@@ -494,6 +516,13 @@ export function initPollEvents() {
           votes: {},
           userVotes: {},
           votedBy: []
+        });
+
+        trackEvent("poll_created", {
+          poll_id: newPollRef.id,
+          category: category,
+          option_count: options.length,
+          duration_days: durationDays
         });
 
         if (pollQuestion) pollQuestion.value = "";
@@ -527,6 +556,7 @@ export function initPollEvents() {
       if (!pollId || typeof encodedOption !== "string") return;
 
       const option = decodeURIComponent(encodedOption);
+      hideVoteMessage();
       await voteOnPoll(pollId, option);
     });
   }
