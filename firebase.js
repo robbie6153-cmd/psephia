@@ -1,6 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-analytics.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyB26YRlo3IuiYtFFc3_aweQ8EDe8_DWUd0",
@@ -8,11 +9,16 @@ const firebaseConfig = {
   projectId: "psephia-9807e",
   storageBucket: "psephia-9807e.firebasestorage.app",
   messagingSenderId: "1085776731080",
-  appId: "1:1085776731080:web:ef9dade729d7f043b7befd"
+  appId: "1:1085776731080:web:ef9dade729d7f043b7befd",
+  measurementId: "G-ZMD0D979CM"
 };
 
 const app = initializeApp(firebaseConfig);
+
+// 🔥 Analytics
+const analytics = getAnalytics(app);
+
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-export { app, auth, db };
+export { app, auth, db, analytics };
