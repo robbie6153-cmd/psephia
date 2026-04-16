@@ -179,7 +179,7 @@ body {
 .app-page {
   max-width: 820px;
   margin: 0 auto;
-  padding: 24px 20px 40px;
+  padding: 100px 20px 40px;
   box-sizing: border-box;
 }
 
@@ -547,7 +547,7 @@ button {
   }
 
  .app-page {
-  padding: 24px 16px 30px;
+  padding: 100px 16px 30px;
 }
 
   .app-page h1 {
@@ -593,13 +593,19 @@ button {
   }
 }
 .category-more-hint {
+  position: fixed;
+  top: 60px;
+  left: 0;
+  width: 100%;
+  z-index: 999;
   text-align: center;
-  margin-top: 70px;
-  margin-bottom: 8px;
+  padding: 6px 12px 4px;
   font-size: 13px;
   color: #4f6f8f;
   background: #f3f3f3;
+  box-sizing: border-box;
 }
+
 /* Dropdown styling */
 select {
   appearance: none;
