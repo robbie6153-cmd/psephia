@@ -4,6 +4,8 @@ body {
   padding: 0;
   width: 100%;
   overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   font-family: Georgia, serif;
   background: #f3f3f3;
   color: #111;
@@ -177,7 +179,7 @@ body {
 .app-page {
   max-width: 820px;
   margin: 0 auto;
-  padding: 145px 20px 40px;
+  padding: 175px 20px 40px;
   box-sizing: border-box;
 }
 
@@ -545,7 +547,7 @@ button {
   }
 
  .app-page {
-  padding: 145px 16px 30px;
+  padding: 175px 16px 30px;
 }
 
   .app-page h1 {
@@ -591,16 +593,11 @@ button {
   }
 }
 .category-more-hint {
-  position: fixed;
-  top: 74px;
-  left: 0;
-  width: 100%;
-  z-index: 999;
-  padding: 0 16px;
+  text-align: center;
+  margin-top: 8px;
   font-size: 13px;
   color: #4f6f8f;
-  background: #f3f3f3;
-  box-sizing: border-box;
+  background: transparent;
 }
 /* Dropdown styling */
 select {
