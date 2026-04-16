@@ -23,8 +23,7 @@ import {
   getDoc,
   updateDoc,
   setDoc,
-  deleteDoc,
-  where
+  deleteDoc
 } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -39,6 +38,10 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+
+const path = window.location.pathname;
+const isProfilePage = path.endsWith("profile.html");
+const isAppPage = path.endsWith("app.html") || path === "/" || path.endsWith("/app.html");
 
 // ===== EMAIL LINK SIGN-IN =====
 if (isSignInWithEmailLink(auth, window.location.href)) {
@@ -64,18 +67,16 @@ if (isSignInWithEmailLink(auth, window.location.href)) {
   }
 }
 
-// ===== PAGE =====
+// ===== COMMON PAGE =====
 const appPage = document.querySelector(".app-page");
-const isProfilePage = window.location.pathname.endsWith("/profile.html") || window.location.pathname.endsWith("profile.html");
 
-// ===== APP ELEMENTS =====
+// ===== APP PAGE ELEMENTS =====
 const pollsView = document.getElementById("pollsView");
 const createPollView = document.getElementById("createPollView");
 const openCreatePollBtn = document.getElementById("openCreatePollBtn");
 const cancelCreatePollBtn = document.getElementById("cancelCreatePollBtn");
 const submitPollBtn = document.getElementById("submitPollBtn");
 
-// ===== USER DETAILS VIEW =====
 const userDetailsView = document.getElementById("userDetailsView");
 const firstNameInput = document.getElementById("firstName");
 const lastNameInput = document.getElementById("lastName");
@@ -84,14 +85,12 @@ const usernameInput = document.getElementById("username");
 const saveDetailsBtn = document.getElementById("saveDetailsBtn");
 const detailsMessage = document.getElementById("detailsMessage");
 
-// ===== CREATE POLL INPUTS =====
 const pollQuestion = document.getElementById("pollQuestion");
 const pollCategory = document.getElementById("createPollCategory");
 const pollDuration = document.getElementById("pollDuration");
 const addOptionBtn = document.getElementById("addOptionBtn");
 const extraOptions = document.getElementById("extraOptions");
 
-// ===== POLLS DISPLAY =====
 const pollsDiv = document.getElementById("polls");
 const pollsCard = document.getElementById("pollsCard");
 const voteMessage = document.getElementById("voteMessage");
@@ -99,7 +98,7 @@ const categoryTabs = document.querySelectorAll(".category-tab[data-category]");
 const openPollsTab = document.getElementById("openPollsTab");
 const resultsPollsTab = document.getElementById("resultsPollsTab");
 
-// ===== AUTH / ACCOUNT =====
+// ===== OLD AUTH ELEMENTS (may not exist) =====
 const emailInput = document.getElementById("email");
 const passwordInput = document.getElementById("password");
 const signUpBtn = document.getElementById("signUpBtn");
@@ -109,7 +108,7 @@ const logoutBtn = document.getElementById("logout");
 const statusText = document.getElementById("status");
 const loginMessage = document.getElementById("loginMessage");
 
-// ===== PROFILE PAGE =====
+// ===== PROFILE PAGE ELEMENTS =====
 const profileFirstName = document.getElementById("profileFirstName");
 const profileLastName = document.getElementById("profileLastName");
 const profileCountry = document.getElementById("profileCountry");
@@ -153,7 +152,7 @@ document.addEventListener("click", (event) => {
   }
 });
 
-// ===== VIEW SWITCHING =====
+// ===== APP VIEW HELPERS =====
 function showPollsView() {
   if (userDetailsView) userDetailsView.classList.add("hidden");
   if (pollsView) pollsView.classList.remove("hidden");
@@ -193,7 +192,6 @@ function showUserDetailsView() {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-// ===== POLL VIEW MODE =====
 function setPollView(view) {
   currentPollView = view;
 
@@ -231,7 +229,8 @@ if (cancelCreatePollBtn) {
 
 if (addOptionBtn) {
   addOptionBtn.addEventListener("click", () => {
-    if (!extraOptions || optionCount >= 5) return;
+    if (!extraOptions) return;
+    if (optionCount >= 5) return;
 
     optionCount += 1;
 
@@ -244,10 +243,10 @@ if (addOptionBtn) {
   });
 }
 
-// ===== CATEGORY TABS =====
 categoryTabs.forEach((tab) => {
   tab.addEventListener("click", () => {
     const category = tab.dataset.category || "Politics";
+
     selectedCategory = category;
 
     categoryTabs.forEach((t) => t.classList.remove("active"));
@@ -257,7 +256,7 @@ categoryTabs.forEach((tab) => {
   });
 });
 
-// ===== HELPERS =====
+// ===== GENERIC HELPERS =====
 function showVoteMessage(message, isError = false) {
   if (!voteMessage) return;
 
@@ -298,9 +297,7 @@ function hasPollEnded(pollData) {
 }
 
 function formatTimeRemainingFromMs(ms) {
-  if (ms <= 0) {
-    return "Voting has ended";
-  }
+  if (ms <= 0) return "Voting has ended";
 
   const totalSeconds = Math.floor(ms / 1000);
   const days = Math.floor(totalSeconds / 86400);
@@ -355,11 +352,13 @@ function getPollResultsHtml(pollData) {
 
   return `
     <div class="poll-results">
-      ${options.map((option) => {
-        const count = typeof votes[option] === "number" ? votes[option] : 0;
-        const percent = Math.round((count / totalVotes) * 100);
-        return `<p>${escapeHtml(option)}: ${percent}%</p>`;
-      }).join("")}
+      ${options
+        .map((option) => {
+          const count = typeof votes[option] === "number" ? votes[option] : 0;
+          const percent = Math.round((count / totalVotes) * 100);
+          return `<p>${escapeHtml(option)}: ${percent}%</p>`;
+        })
+        .join("")}
     </div>
   `;
 }
@@ -393,15 +392,6 @@ function startCountdownUpdater() {
       }
     });
   }, 1000);
-}
-
-function setProfileInputsDisabled(disabled) {
-  if (!profileFirstName) return;
-
-  profileFirstName.disabled = disabled;
-  profileLastName.disabled = disabled;
-  profileCountry.disabled = disabled;
-  profileUsername.disabled = disabled;
 }
 
 async function saveUserDetails() {
@@ -453,7 +443,16 @@ async function saveUserDetails() {
 if (saveDetailsBtn) {
   saveDetailsBtn.addEventListener("click", saveUserDetails);
 }
-// ===== PROFILE PAGE FUNCTIONS =====
+
+function setProfileInputsDisabled(disabled) {
+  if (!profileFirstName) return;
+
+  profileFirstName.disabled = disabled;
+  profileLastName.disabled = disabled;
+  profileCountry.disabled = disabled;
+  profileUsername.disabled = disabled;
+}
+// ===== PROFILE PAGE =====
 async function loadProfile(user) {
   if (!user || !profileFirstName) return;
 
@@ -540,26 +539,19 @@ async function loadMyPolls(user) {
   myPollsList.innerHTML = "";
 
   try {
-    const userSnap = await getDoc(doc(db, "users", user.uid));
-    const username = userSnap.exists() ? (userSnap.data().username || "") : "";
-
     const snap = await getDocs(query(collection(db, "polls"), orderBy("createdAt", "desc")));
 
-    const myPollDocs = snap.docs.filter((pollDoc) => {
+    const myDocs = snap.docs.filter((pollDoc) => {
       const poll = pollDoc.data();
-
-      return (
-        poll.createdByUid === user.uid ||
-        (username && poll.createdBy === username)
-      );
+      return poll.createdByUid === user.uid;
     });
 
-    if (myPollDocs.length === 0) {
+    if (myDocs.length === 0) {
       myPollsList.innerHTML = "<p>You have not created any polls yet.</p>";
       return;
     }
 
-    myPollDocs.forEach((pollDoc) => {
+    myDocs.forEach((pollDoc) => {
       const poll = pollDoc.data();
       const pollId = pollDoc.id;
 
@@ -624,11 +616,7 @@ function attachMyPollMenuEvents() {
 
       try {
         await deleteDoc(doc(db, "polls", pollId));
-        button.closest(".my-poll-card")?.remove();
-
-        if (myPollsList && myPollsList.children.length === 0) {
-          myPollsList.innerHTML = "<p>You have not created any polls yet.</p>";
-        }
+        await loadMyPolls(auth.currentUser);
       } catch (error) {
         console.error("Delete poll error:", error);
         alert("Could not delete poll.");
@@ -653,53 +641,46 @@ async function deleteProfile(user) {
   if (!confirmed) return;
 
   try {
-    const userSnap = await getDoc(doc(db, "users", user.uid));
-    const username = userSnap.exists() ? (userSnap.data().username || "") : "";
-
     const allPollsSnap = await getDocs(query(collection(db, "polls"), orderBy("createdAt", "desc")));
 
     for (const pollDoc of allPollsSnap.docs) {
       const poll = pollDoc.data();
 
-      const isUsersPoll =
-        poll.createdByUid === user.uid ||
-        (username && poll.createdBy === username);
-
-      if (isUsersPoll) {
+      if (poll.createdByUid === user.uid) {
         await deleteDoc(doc(db, "polls", pollDoc.id));
         continue;
       }
 
-      const userVotes = poll.userVotes && typeof poll.userVotes === "object"
-        ? { ...poll.userVotes }
-        : null;
+      const userVotes =
+        poll.userVotes && typeof poll.userVotes === "object"
+          ? { ...poll.userVotes }
+          : {};
 
-      const votes = poll.votes && typeof poll.votes === "object"
-        ? { ...poll.votes }
-        : null;
+      const votes =
+        poll.votes && typeof poll.votes === "object"
+          ? { ...poll.votes }
+          : {};
 
-      const votedBy = Array.isArray(poll.votedBy) ? [...poll.votedBy] : null;
+      const votedBy = Array.isArray(poll.votedBy) ? [...poll.votedBy] : [];
 
-      if (userVotes && userVotes[user.uid]) {
+      if (userVotes[user.uid]) {
         const chosenOption = userVotes[user.uid];
 
-        if (votes && typeof votes[chosenOption] === "number" && votes[chosenOption] > 0) {
+        if (typeof votes[chosenOption] === "number" && votes[chosenOption] > 0) {
           votes[chosenOption] -= 1;
         }
 
         delete userVotes[user.uid];
 
-        if (votedBy) {
-          const index = votedBy.indexOf(user.uid);
-          if (index !== -1) {
-            votedBy.splice(index, 1);
-          }
+        const index = votedBy.indexOf(user.uid);
+        if (index !== -1) {
+          votedBy.splice(index, 1);
         }
 
         await updateDoc(doc(db, "polls", pollDoc.id), {
-          votes: votes || {},
-          userVotes: userVotes || {},
-          votedBy: votedBy || []
+          votes,
+          userVotes,
+          votedBy
         });
       }
     }
@@ -718,7 +699,6 @@ async function deleteProfile(user) {
   }
 }
 
-// ===== PROFILE PAGE BUTTONS =====
 if (editDetailsBtn) {
   editDetailsBtn.addEventListener("click", () => {
     setProfileInputsDisabled(false);
@@ -749,7 +729,7 @@ if (deleteProfileBtn) {
   });
 }
 
-// ===== AUTH =====
+// ===== OPTIONAL LEGACY AUTH BUTTONS =====
 if (signUpBtn) {
   signUpBtn.addEventListener("click", async () => {
     const email = emailInput?.value.trim();
@@ -885,7 +865,6 @@ if (logoutBtn) {
   logoutBtn.addEventListener("click", async () => {
     try {
       await signOut(auth);
-      hideVoteMessage();
       window.location.href = "index.html";
     } catch (error) {
       console.error("Logout error:", error);
@@ -924,6 +903,7 @@ if (submitPollBtn) {
       const createdAt = new Date();
       const closesAt = new Date(createdAt.getTime() + durationDays * 24 * 60 * 60 * 1000);
       const user = auth.currentUser;
+
       const userDoc = await getDoc(doc(db, "users", user.uid));
 
       if (!userDoc.exists()) {
@@ -953,10 +933,15 @@ if (submitPollBtn) {
       if (pollDuration) pollDuration.value = "1";
 
       document.querySelectorAll(".poll-option").forEach((input, index) => {
-        if (index < 2) input.value = "";
+        if (index < 2) {
+          input.value = "";
+        }
       });
 
-      if (extraOptions) extraOptions.innerHTML = "";
+      if (extraOptions) {
+        extraOptions.innerHTML = "";
+      }
+
       optionCount = 2;
 
       hideVoteMessage();
@@ -1010,7 +995,7 @@ async function loadPolls() {
         showThisPoll = !pollEnded;
       } else if (currentPollView === "results") {
         if (pollEnded && endsAtDate) {
-          const resultsExpiryTime = endsAtDate.getTime() + (24 * 60 * 60 * 1000);
+          const resultsExpiryTime = endsAtDate.getTime() + 24 * 60 * 60 * 1000;
           showThisPoll = now.getTime() < resultsExpiryTime;
         }
       }
@@ -1026,11 +1011,7 @@ async function loadPolls() {
       if (currentPollView === "open") {
         if (endsAtDate) {
           timerHtml = `
-            <p
-              class="poll-timer"
-              data-end-time="${endsAtDate.getTime()}"
-              data-timer-type="open"
-            >
+            <p class="poll-timer" data-end-time="${endsAtDate.getTime()}" data-timer-type="open">
               ${escapeHtml(formatTimeRemaining(endsAtDate))}
             </p>
           `;
@@ -1040,13 +1021,9 @@ async function loadPolls() {
       }
 
       if (currentPollView === "results" && endsAtDate) {
-        const resultsExpiryDate = new Date(endsAtDate.getTime() + (24 * 60 * 60 * 1000));
+        const resultsExpiryDate = new Date(endsAtDate.getTime() + 24 * 60 * 60 * 1000);
         timerHtml = `
-          <p
-            class="poll-timer"
-            data-end-time="${resultsExpiryDate.getTime()}"
-            data-timer-type="results"
-          >
+          <p class="poll-timer" data-end-time="${resultsExpiryDate.getTime()}" data-timer-type="results">
             Results disappear in ${escapeHtml(getTimeRemainingText(resultsExpiryDate))}
           </p>
         `;
@@ -1057,20 +1034,22 @@ async function loadPolls() {
       if (currentPollView === "results") {
         contentHtml = getPollResultsHtml(p);
       } else {
-        contentHtml = options.map((option) => {
-          const isSelected = selectedOption === option;
+        contentHtml = options
+          .map((option) => {
+            const isSelected = selectedOption === option;
 
-          return `
-            <div
-              class="vote-option${isSelected ? " selected" : ""}"
-              data-poll-id="${docItem.id}"
-              data-option="${encodeURIComponent(option)}"
-            >
-              <span class="vote-tick">${isSelected ? "✔" : "✓"}</span>
-              <span class="vote-text">${escapeHtml(option)}</span>
-            </div>
-          `;
-        }).join("");
+            return `
+              <div
+                class="vote-option${isSelected ? " selected" : ""}"
+                data-poll-id="${docItem.id}"
+                data-option="${encodeURIComponent(option)}"
+              >
+                <span class="vote-tick">${isSelected ? "✔" : "✓"}</span>
+                <span class="vote-text">${escapeHtml(option)}</span>
+              </div>
+            `;
+          })
+          .join("");
       }
 
       pollsDiv.innerHTML += `
@@ -1154,8 +1133,7 @@ async function voteOnPoll(pollId, option) {
         ? { ...selectedPoll.votes }
         : {};
 
-    const votedBy =
-      Array.isArray(selectedPoll.votedBy) ? [...selectedPoll.votedBy] : [];
+    const votedBy = Array.isArray(selectedPoll.votedBy) ? [...selectedPoll.votedBy] : [];
 
     if (userVotes[user.uid]) {
       showVoteMessage("You have already voted on this poll. Please try a new one.", true);
@@ -1172,8 +1150,8 @@ async function voteOnPoll(pollId, option) {
 
     await updateDoc(pollRef, {
       votes,
-      votedBy,
-      userVotes
+      userVotes,
+      votedBy
     });
 
     showVoteMessage("Your vote has been received.", false);
@@ -1186,27 +1164,12 @@ async function voteOnPoll(pollId, option) {
 
 // ===== AUTH STATE =====
 onAuthStateChanged(auth, async (user) => {
-  const urlParams = new URLSearchParams(window.location.search);
-
-  if (urlParams.get("verified") === "1" && loginMessage) {
-    loginMessage.textContent = "✅ Email verified. Please log in.";
-  }
-
   if (appPage) {
     appPage.classList.remove("hidden-until-ready");
     appPage.style.visibility = "visible";
   }
 
   if (user) {
-    if (statusText) statusText.textContent = "Logged in: " + user.email;
-    if (logoutBtn) logoutBtn.style.display = "inline-block";
-    if (signUpBtn) signUpBtn.style.display = "none";
-    if (loginBtn) loginBtn.style.display = "none";
-    if (forgotPasswordBtn) forgotPasswordBtn.style.display = "none";
-    if (emailInput) emailInput.style.display = "none";
-    if (passwordInput) passwordInput.style.display = "none";
-    if (loginMessage) loginMessage.textContent = "";
-
     try {
       const userRef = doc(db, "users", user.uid);
       const userSnap = await getDoc(userRef);
@@ -1238,21 +1201,16 @@ onAuthStateChanged(auth, async (user) => {
       }
     }
   } else {
-    if (statusText) statusText.textContent = "Not logged in";
-    if (logoutBtn) logoutBtn.style.display = "none";
-    if (signUpBtn) signUpBtn.style.display = "inline-block";
-    if (loginBtn) loginBtn.style.display = "inline-block";
-    if (forgotPasswordBtn) forgotPasswordBtn.style.display = "inline-block";
-    if (emailInput) emailInput.style.display = "block";
-    if (passwordInput) passwordInput.style.display = "block";
-
-    hideVoteMessage();
+    if (openCreatePollBtn) {
+      openCreatePollBtn.classList.add("hidden");
+    }
 
     if (isProfilePage) {
       window.location.href = "app.html";
       return;
     }
 
+    hideVoteMessage();
     showPollsView();
     await loadPolls();
   }
