@@ -114,7 +114,12 @@ let countdownInterval = null;
 let optionCount = 2;
 function setPollView(view) {
   currentPollView = view;
+const pollsCard = document.getElementById("pollsCard");
 
+if (pollsCard) {
+  pollsCard.classList.toggle("mode-open", view === "open");
+  pollsCard.classList.toggle("mode-results", view === "results");
+}
   if (openPollsTab) {
     openPollsTab.classList.toggle("active", view === "open");
   }
