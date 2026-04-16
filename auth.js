@@ -1,10 +1,11 @@
 import { auth, db } from "./firebase.js";
 import {
   onAuthStateChanged,
+  createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   sendPasswordResetEmail,
+  sendEmailVerification,
   signOut,
-  sendSignInLinkToEmail,
   isSignInWithEmailLink,
   signInWithEmailLink,
   deleteUser
@@ -74,6 +75,19 @@ async function handleEmailLinkSignIn() {
     if (loginMessage) {
       loginMessage.textContent = "Link expired. Please request a new one.";
     }
+  }
+}
+
+async function handleManualLoginMode() {
+  const params = new URLSearchParams(window.location.search);
+  const isManualMode = params.get("manual") === "1";
+
+  if (!isManualMode) return;
+
+  try {
+    await signOut(auth);
+  } catch (error) {
+    console.error("Manual mode sign-out error:", error);
   }
 }
 
@@ -176,7 +190,7 @@ function initAuthButtons() {
     logoutBtn.addEventListener("click", async () => {
       try {
         await signOut(auth);
-        window.location.href = "profile.html";
+        window.location.href = "profile.html?manual=1";
       } catch (error) {
         console.error("Logout error:", error);
       }
@@ -187,7 +201,7 @@ function initAuthButtons() {
     switchAccountBtn.addEventListener("click", async () => {
       try {
         await signOut(auth);
-        window.location.href = "profile.html";
+        window.location.href = "profile.html?manual=1";
       } catch (error) {
         console.error("Switch account error:", error);
       }
@@ -197,82 +211,102 @@ function initAuthButtons() {
   if (signUpBtn) {
     signUpBtn.addEventListener("click", async () => {
       const email = emailInput?.value.trim() || "";
+      const password = passwordInput?.value.trim() || "";
 
-      if (!email) {
+      if (!email || !password) {
         if (loginMessage) {
-          loginMessage.textContent = "Please enter your email.";
+          loginMessage.textContent = "Please enter both email and password.";
+        }
+        return;
+      }
+
+      if (password.length < 6) {
+        if (loginMessage) {
+          loginMessage.textContent = "Password must be at least 6 characters.";
         }
         return;
       }
 
       if (loginMessage) {
-        loginMessage.textContent = "Sending sign-in link...";
+        loginMessage.textContent = "Creating account...";
       }
 
       try {
-        await sendSignInLinkToEmail(auth, email, {
-          url: "https://psephia.com/profile.html",
-          handleCodeInApp: true
-        });
+        await signOut(auth).catch(() => {});
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
 
-        localStorage.setItem("emailForSignIn", email);
+        await sendEmailVerification(user);
+        await signOut(auth);
 
         if (loginMessage) {
           loginMessage.innerHTML =
-            "We’ve sent you a sign-in link.<br><br>Click the link in your email to continue.";
+            "Account created successfully.<br><br>Please verify your email before logging in.";
         }
       } catch (error) {
         console.error("Create account error:", error);
+
         if (loginMessage) {
-          loginMessage.textContent = error.message || "Error sending link.";
+          if (error.code === "auth/email-already-in-use") {
+            loginMessage.textContent = "An account with this email already exists.";
+          } else if (error.code === "auth/invalid-email") {
+            loginMessage.textContent = "Please enter a valid email address.";
+          } else if (error.code === "auth/weak-password") {
+            loginMessage.textContent = "Password is too weak.";
+          } else {
+            loginMessage.textContent = error.message || "Could not create account.";
+          }
         }
       }
     });
   }
 
-if (loginBtn) {
-  loginBtn.addEventListener("click", async () => {
-    const email = emailInput?.value.trim() || "";
-    const password = passwordInput?.value.trim() || "";
+  if (loginBtn) {
+    loginBtn.addEventListener("click", async () => {
+      const email = emailInput?.value.trim() || "";
+      const password = passwordInput?.value.trim() || "";
 
-    if (!email || !password) {
-      if (loginMessage) {
-        loginMessage.textContent = "Please enter both email and password.";
-      }
-      return;
-    }
-
-    if (loginMessage) {
-      loginMessage.textContent = "Logging in...";
-    }
-
-    try {
-      await signOut(auth).catch(() => {});
-
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
-
-      if (user && user.emailVerified === false) {
-        await signOut(auth);
+      if (!email || !password) {
         if (loginMessage) {
-          loginMessage.textContent = "Please verify your email before logging in.";
+          loginMessage.textContent = "Please enter both email and password.";
         }
         return;
       }
 
       if (loginMessage) {
-        loginMessage.textContent = "Login successful.";
+        loginMessage.textContent = "Logging in...";
       }
 
-      window.location.href = "app.html";
-    } catch (error) {
-      console.error("Login error:", error);
-      if (loginMessage) {
-        loginMessage.textContent = "Incorrect email or password.";
+      try {
+        await signOut(auth).catch(() => {});
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+
+        if (user && user.emailVerified === false) {
+          await signOut(auth);
+          if (loginMessage) {
+            loginMessage.textContent = "Please verify your email before logging in.";
+          }
+          return;
+        }
+
+        if (loginMessage) {
+          loginMessage.textContent = "Login successful.";
+        }
+
+        window.location.href = "app.html";
+      } catch (error) {
+        console.error("Login error:", error);
+        if (loginMessage) {
+          if (error.code === "auth/invalid-credential") {
+            loginMessage.textContent = "Incorrect email or password.";
+          } else {
+            loginMessage.textContent = error.message || "Could not log in.";
+          }
+        }
       }
-    }
-  });
-}
+    });
+  }
 
   if (forgotPasswordBtn) {
     forgotPasswordBtn.addEventListener("click", async () => {
@@ -291,7 +325,7 @@ if (loginBtn) {
 
       try {
         await sendPasswordResetEmail(auth, email, {
-          url: `${window.location.origin}/profile.html`
+          url: `${window.location.origin}/profile.html?manual=1`
         });
 
         if (loginMessage) {
@@ -394,26 +428,14 @@ function initAuthState() {
   });
 }
 
-
 // ===== START APP =====
-async function handleManualLoginMode() {
-  const params = new URLSearchParams(window.location.search);
-  const isManualMode = params.get("manual") === "1";
-
-  if (!isManualMode) return;
-
+async function initApp() {
   try {
-    await signOut(auth);
+    await handleManualLoginMode();
+    await handleEmailLinkSignIn();
   } catch (error) {
-    console.error("Manual mode sign-out error:", error);
+    console.error("Startup auth init error:", error);
   }
-}
-try {
-  await handleManualLoginMode();
-  await handleEmailLinkSignIn();
-} catch (error) {
-  console.error("Startup auth init error:", error);
-}
 
   try {
     initUi(loadPolls);
