@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Community Guidelines - Psephia</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+
+<body>
+  <div class="top-bar">
+    <button class="menu-button" onclick="toggleMenu()">☰</button>
+
+    <div id="dropdownMenu" class="dropdown-menu">
+      <a href="index.html">Home</a>
+      <a href="app.html">App</a>
+      <a href="private.html">Private Polls</a>
+      <a href="community.html">Community Guidelines</a>
+      <a href="privacy.html">Privacy Policy</a>
+      <a href="terms.html">Terms of Use</a>
+    </div>
+  </div>
+
+  <main class="app-page">
+    <div class="card">
+      <a href="app.html" class="back-button">← Back</a>
+
+      <h1>Community Guidelines</h1>
+
+      <p>
+        Psephia is intended to be a place for open discussion, voting, debate and disagreement.
+        We welcome strong opinions, humour, parody and criticism. We do not allow content or behaviour
+        that puts users at risk, breaks the law, or undermines the integrity of the platform.
+      </p>
+
+      <h2>1. Respect other users</h2>
+      <p>
+        Do not bully, harass, threaten, intimidate or deliberately target other people with abuse.
+        Repeated unwanted contact, pile-ons, incitement against an individual, or content intended to
+        cause fear or distress may be removed.
+      </p>
+
+      <h2>2. No illegal content or criminal behaviour</h2>
+      <p>
+        You must not use Psephia to post, promote, organise or encourage illegal activity. This includes,
+        but is not limited to, threats of violence, harassment, fraud, terrorism, child sexual abuse material,
+        extreme pornography, hate offences, doxxing, blackmail, stalking, and unlawful sale or promotion of
+        illegal goods or services.
+      </p>
+
+      <h2>3. No fraud, scams or deception</h2>
+      <p>
+        Do not use Psephia to trick, defraud or mislead people. This includes phishing, fake giveaways,
+        fake investment schemes, false fundraising, impersonation for gain, and any attempt to obtain money,
+        data, passwords or personal information dishonestly.
+      </p>
+
+      <h2>4. Impersonation, parody and misleading identity</h2>
+      <p>
+        Whilst parody accounts are acceptable, any accounts that intentionally impersonate public figures,
+        businesses, public bodies, charities, media organisations or other organisations in a misleading way
+        will be suspended.
+      </p>
+      <p>
+        You must not pretend to be another real person in a way that is likely to deceive others, cause harm,
+        damage reputation, or assist fraud. We may ask users to change usernames, profile details or content
+        that creates a misleading impression.
+      </p>
+
+      <h2>5. Hate, extremism and incitement</h2>
+      <p>
+        We do not allow content that promotes terrorism, violent extremism, or hatred against people based on
+        protected characteristics. Content that encourages violence, glorifies serious harm, or stirs up hatred
+        may be removed and reported where appropriate.
+      </p>
+
+      <h2>6. Privacy and personal information</h2>
+      <p>
+        Do not post someone else’s private or confidential information without permission. This includes home
+        addresses, private phone numbers, private email addresses, financial details, identity documents,
+        workplace details where shared maliciously, or other personal data that could be used to harass or harm.
+      </p>
+
+      <h2>7. Defamation and false allegations</h2>
+      <p>
+        Do not use Psephia to make serious allegations about a person or organisation unless you have a lawful
+        basis and can support what you are saying. False or reckless accusations can cause serious harm and may
+        result in content removal or account action.
+      </p>
+
+      <h2>8. Manipulation and platform abuse</h2>
+      <p>
+        Do not attempt to manipulate polls, evade bans, create fake engagement, mass-create accounts, use bots
+        without permission, scrape the platform unlawfully, or interfere with the security or operation of the site.
+      </p>
+
+      <h2>9. Spam and low-quality abuse</h2>
+      <p>
+        Do not post repetitive, irrelevant or disruptive content. This includes mass posting, promotional spam,
+        link spam, and content designed mainly to mislead, clutter the platform or degrade the user experience.
+      </p>
+
+      <h2>10. Enforcement</h2>
+      <p>
+        We may remove content, limit reach, require profile changes, suspend accounts, or permanently ban users
+        who break these guidelines. In serious cases, we may preserve evidence and report matters to law enforcement
+        or other relevant authorities.
+      </p>
+
+      <h2>11. Reporting</h2>
+      <p>
+        If you believe content or an account breaches these guidelines, please report it through the available
+        reporting channels. We review reports and may act without notice where necessary to protect users, comply
+        with the law, or maintain the integrity of the platform.
+      </p>
+
+      <h2>12. A note on the law</h2>
+      <p>
+        These guidelines are a general platform standard and not a full statement of UK law. They are intended
+        to support safe use of Psephia and may be updated as the platform develops.
+      </p>
+
+      <p><strong>RobTechUK</strong></p>
+      <p>For further information, please visit <a href="https://robtech.uk" target="_blank">RobTech.uk</a></p>
+    </div>
+  </main>
+
+  <script>
+    function toggleMenu() {
+      const menu = document.getElementById("dropdownMenu");
+      menu.classList.toggle("show");
+    }
+
+    document.addEventListener("click", function (event) {
+      const menu = document.getElementById("dropdownMenu");
+      const button = document.querySelector(".menu-button");
+
+      if (!menu.contains(event.target) && !button.contains(event.target)) {
+        menu.classList.remove("show");
+      }
+    });
+  </script>
+</body>
+</html>

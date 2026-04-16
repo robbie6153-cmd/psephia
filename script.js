@@ -141,6 +141,12 @@ if (resultsPollsTab) {
     setPollView("results");
   });
 }
+function closeMenu() {
+  const menu = document.getElementById("dropdownMenu");
+  if (menu) {
+    menu.classList.remove("show");
+  }
+}
 // ===== MENU =====
 window.toggleMenu = function () {
   const menu = document.getElementById("dropdownMenu");
