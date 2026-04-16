@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Private Polls - Psephia</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+
+<body>
+
+  <!-- TOP BAR -->
+  <div class="top-bar">
+    <button class="menu-button" onclick="toggleMenu()">☰</button>
+
+    <div id="dropdownMenu" class="dropdown-menu">
+      <a href="index.html">Home</a>
+      <a href="app.html">App</a>
+      <a href="profile.html">My Profile</a>
+      <a href="community-guidelines.html">Community Guidelines</a>
+      <a href="privacy.html">Privacy Policy</a>
+      <a href="terms.html">Terms of Use</a>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <main class="app-page">
+    <div class="card">
+
+      <h1>Private Polls</h1>
+
+      <p>
+        Private polls is a premium feature that we plan to roll out soon.
+      </p>
+
+      <p>
+        Private polls allows users to create a poll and select the people that can vote on it,
+        with the poll remaining visible only to those selected.
+      </p>
+
+      <p>
+        It will also allow users to create groups so that only members of that group can vote.
+        For example, this could be used by a workplace to gauge opinion on who should be their
+        union representative, or by local residents to vote on whether a development should go ahead.
+      </p>
+
+      <p>
+        Psephia was founded in April 2026 and is moving at a fast pace. We thank you for your patience.
+      </p>
+
+      <p><strong>RobTechUK</strong></p>
+
+      <p>
+        For further information, please visit 
+        <a href="https://robtech.uk" target="_blank">RobTech.uk</a>
+      </p>
+
+    </div>
+  </main>
+
+  <!-- MENU SCRIPT -->
+  <script>
+    function toggleMenu() {
+      const menu = document.getElementById("dropdownMenu");
+      menu.classList.toggle("show");
+    }
+
+    document.addEventListener("click", function (event) {
+      const menu = document.getElementById("dropdownMenu");
+      const button = document.querySelector(".menu-button");
+
+      if (!menu.contains(event.target) && !button.contains(event.target)) {
+        menu.classList.remove("show");
+      }
+    });
+  </script>
+
+</body>
+</html>
