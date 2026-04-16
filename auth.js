@@ -347,30 +347,29 @@ function initAuthState() {
       appPage.style.visibility = "visible";
     }
 
-   if (isProfilePage) {
-  if (profileAuthView) {
-    profileAuthView.classList.remove("hidden");
-  }
+    if (isProfilePage) {
+      if (profileAuthView) {
+        profileAuthView.classList.remove("hidden");
+      }
 
-  if (user) {
-    if (profileLoggedInView) {
-      profileLoggedInView.classList.remove("hidden");
-    }
+      if (user) {
+        if (profileLoggedInView) {
+          profileLoggedInView.classList.remove("hidden");
+        }
 
-    try {
-      await loadProfile(user);
-      await loadMyPolls(user);
-    } catch (error) {
-      console.error("Profile page auth error:", error);
-    }
-  } else {
-    if (profileLoggedInView) {
-      profileLoggedInView.classList.add("hidden");
-    }
-  }
+        try {
+          await loadProfile(user);
+          await loadMyPolls(user);
+        } catch (error) {
+          console.error("Profile page auth error:", error);
+        }
+      } else {
+        if (profileLoggedInView) {
+          profileLoggedInView.classList.add("hidden");
+        }
+      }
 
-  return;
-}
+      return;
     }
 
     if (user) {
@@ -394,6 +393,7 @@ function initAuthState() {
     }
   });
 }
+
 
 // ===== START APP =====
 async function initApp() {
