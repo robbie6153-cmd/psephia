@@ -396,12 +396,24 @@ function initAuthState() {
 
 
 // ===== START APP =====
-async function initApp() {
+async function handleManualLoginMode() {
+  const params = new URLSearchParams(window.location.search);
+  const isManualMode = params.get("manual") === "1";
+
+  if (!isManualMode) return;
+
   try {
-    await handleEmailLinkSignIn();
+    await signOut(auth);
   } catch (error) {
-    console.error("Email link init error:", error);
+    console.error("Manual mode sign-out error:", error);
   }
+}
+try {
+  await handleManualLoginMode();
+  await handleEmailLinkSignIn();
+} catch (error) {
+  console.error("Startup auth init error:", error);
+}
 
   try {
     initUi(loadPolls);
