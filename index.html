@@ -4,18 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Psephia</title>
+
   <link rel="stylesheet" href="style.css">
 </head>
-<script>
-  atOptions = {
-    'key' : '16088f914138faa6017b06588d14ad63',
-    'format' : 'iframe',
-    'height' : 50,
-    'width' : 320,
-    'params' : {}
-  };
-</script>
-<script src="https://www.highperformanceformat.com/16088f914138faa6017b06588d14ad63/invoke.js"></script>
 
 <body>
 
@@ -23,22 +14,43 @@
     <button class="menu-button" onclick="toggleMenu()">☰</button>
 
     <div id="dropdownMenu" class="dropdown-menu">
-  <a href="index.html">Home</a>
-  <a href="profile.html">My Profile</a>
-  <a href="community.html">Community Guidelines</a>
-  <a href="privacy.html">Privacy Policy</a>
-  <a href="terms.html">Terms of Use</a>
-</div>
+      <a href="index.html">Home</a>
+      <a href="profile.html">My Profile</a>
+      <a href="community.html">Community Guidelines</a>
+      <a href="privacy.html">Privacy Policy</a>
+      <a href="terms.html">Terms of Use</a>
+    </div>
   </div>
 
   <img src="homepage.jpg" alt="Psephia homepage" class="home-image">
 
+  <!-- Top Banner Ad -->
+  <div class="top-banner-ad">
+    <script>
+      atOptions = {
+        'key' : '16088f914138faa6017b06588d14ad63',
+        'format' : 'iframe',
+        'height' : 50,
+        'width' : 320,
+        'params' : {}
+      };
+    </script>
+
+    <script src="//www.highperformanceformat.com/16088f914138faa6017b06588d14ad63/invoke.js"></script>
+  </div>
+
   <section class="auth-section">
     <div class="auth-container">
       <h2>Join Psephia</h2>
-  <a href="profile.html" class="auth-btn primary">Sign Up</a>
-<a href="profile.html?manual=1" class="auth-btn secondary">Log In</a>
+
+      <a href="profile.html" class="auth-btn primary">Sign Up</a>
+
+      <a href="profile.html?manual=1" class="auth-btn secondary">
+        Log In
+      </a>
+
       <div class="divider">or</div>
+
       <button class="auth-btn apple">Sign in with Apple</button>
       <button class="auth-btn google">Sign in with Google</button>
     </div>
@@ -47,31 +59,91 @@
   <section class="intro-section">
     <div class="intro-container">
       <h2>About Psephia</h2>
-      <p>Psephia is a new social media website by RobTechUK, inspired by the Ancient Greek word <em>psephia</em>, meaning pebble, which was once used by people to cast their vote. Because of this practice, the word psephos evolved to mean a vote or a decree. The terms psephology is the scientific study of elections.</p>
-      <p>The site allows users to submit questions for other users to vote on, or to vote on topics submitted by others.</p>
-      <p>A post can remain open for up to 7 days, and once voting has closed, the result will be revealed. Users will not be able to see how others have voted until the voting period has ended.</p>
-      <p>Once a vote has ended, comments will be allowed on the post so users can discuss the result.</p>
+
+      <p>
+        Psephia is a new social media website by RobTechUK,
+        inspired by the Ancient Greek word <em>psephia</em>,
+        meaning pebble, which was once used by people to cast
+        their vote.
+      </p>
+
+      <p>
+        Because of this practice, the word psephos evolved to
+        mean a vote or a decree. The term psephology is the
+        scientific study of elections.
+      </p>
+
+      <p>
+        The site allows users to submit questions for other
+        users to vote on, or to vote on topics submitted by others.
+      </p>
+
+      <p>
+        A post can remain open for up to 7 days, and once voting
+        has closed, the result will be revealed.
+      </p>
+
+      <p>
+        Users will not be able to see how others have voted until
+        the voting period has ended.
+      </p>
+
+      <p>
+        Once a vote has ended, comments will be allowed on the
+        post so users can discuss the result.
+      </p>
+
       <h3>General Rules</h3>
-      <p>We want to keep debate on Psephia civil, respectful, and lawful. RobTechUK may remove posts or comments that incite violence, promote hatred, harass other users, encourage illegal activity, or otherwise violate UK law.</p>
-      <p>Repeated breaches of these rules may result in content removal or restricted access to the site. For further information, please see our Community Guidelines.</p>
+
+      <p>
+        We want to keep debate on Psephia civil, respectful,
+        and lawful.
+      </p>
+
+      <p>
+        RobTechUK may remove posts or comments that incite violence,
+        promote hatred, harass other users, encourage illegal
+        activity, or otherwise violate UK law.
+      </p>
+
+      <p>
+        Repeated breaches of these rules may result in content
+        removal or restricted access to the site.
+      </p>
+
+      <p>
+        For further information, please see our Community Guidelines.
+      </p>
     </div>
   </section>
-<script>
-function toggleMenu() {
-  const menu = document.getElementById("dropdownMenu");
-  menu.style.display = menu.style.display === "block" ? "none" : "block";
-}
 
-document.addEventListener("click", function (e) {
-  const menu = document.getElementById("dropdownMenu");
-  const button = document.querySelector(".menu-button");
+  <script>
+    function toggleMenu() {
+      const menu = document.getElementById("dropdownMenu");
 
-  if (!menu || !button) return;
+      menu.style.display =
+        menu.style.display === "block"
+          ? "none"
+          : "block";
+    }
 
-  if (!button.contains(e.target) && !menu.contains(e.target)) {
-    menu.style.display = "none";
-  }
-});
-</script>
+    document.addEventListener("click", function (e) {
+
+      const menu = document.getElementById("dropdownMenu");
+
+      const button =
+        document.querySelector(".menu-button");
+
+      if (!menu || !button) return;
+
+      if (
+        !button.contains(e.target) &&
+        !menu.contains(e.target)
+      ) {
+        menu.style.display = "none";
+      }
+    });
+  </script>
+
 </body>
 </html>
