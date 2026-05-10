@@ -342,13 +342,13 @@ export async function loadMyPolls(user) {
 
   try {
     const snap = await getDocs(query(collection(db, "polls"), orderBy("createdAt", "desc")));
-    const myDocs = snap.docs.filter((pollDoc) => {
-      const poll = pollDoc.data();
-      return poll.createdByUid === user.uid;
-    });
+  const myDocs = snap.docs.filter((pollDoc) => {
+  const poll = pollDoc.data();
+  return poll.createdByUid === user.uid && !hasPollEnded(poll);
+});
 
     if (myDocs.length === 0) {
-      myPollsList.innerHTML = "<p>You have not created any polls yet.</p>";
+      myPollsList.innerHTML = "<p>You have no active polls.</p>";
       return;
     }
 
