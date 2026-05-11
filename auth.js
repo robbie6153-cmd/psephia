@@ -8,7 +8,9 @@ import {
   signOut,
   isSignInWithEmailLink,
   signInWithEmailLink,
-  deleteUser
+ deleteUser,
+GoogleAuthProvider,
+signInWithPopup
 } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
 
 import {
@@ -27,6 +29,7 @@ import {
   passwordInput,
   signUpBtn,
   loginBtn,
+  googleLoginBtn,
   forgotPasswordBtn,
   switchAccountBtn,
   logoutBtn,
@@ -307,7 +310,40 @@ function initAuthButtons() {
       }
     });
   }
+if (googleLoginBtn) {
+  googleLoginBtn.addEventListener("click", async () => {
+    if (loginMessage) {
+      loginMessage.textContent = "Signing in with Google...";
+    }
 
+    try {
+      await signOut(auth).catch(() => {});
+
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+
+      if (loginMessage) {
+        loginMessage.textContent = "Google sign-in successful.";
+      }
+
+      const userSnap = await getDoc(doc(db, "users", user.uid));
+
+      if (userSnap.exists()) {
+        window.location.href = "app.html";
+      } else {
+        window.location.href = "create-account.html";
+      }
+    } catch (error) {
+      console.error("Google sign-in error:", error);
+
+      if (loginMessage) {
+        loginMessage.textContent =
+          error.message || "Could not sign in with Google.";
+      }
+    }
+  });
+}
   if (forgotPasswordBtn) {
     forgotPasswordBtn.addEventListener("click", async () => {
       const email = emailInput?.value.trim() || "";

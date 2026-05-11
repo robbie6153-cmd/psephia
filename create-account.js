@@ -56,7 +56,11 @@ onAuthStateChanged(auth, async (user) => {
     return;
   }
 
-  if (!user.emailVerified) {
+  const signedInWithGoogle = user.providerData.some(
+    provider => provider.providerId === "google.com"
+  );
+
+  if (!user.emailVerified && !signedInWithGoogle) {
     await signOut(auth);
     window.location.replace("app.html");
     return;
@@ -82,6 +86,7 @@ onAuthStateChanged(auth, async (user) => {
     console.error(error);
   }
 });
+
 
 saveProfileBtn.addEventListener("click", async () => {
   const user = auth.currentUser;

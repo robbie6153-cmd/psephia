@@ -44,6 +44,7 @@ export const emailInput = document.getElementById("email");
 export const passwordInput = document.getElementById("password");
 export const signUpBtn = document.getElementById("signUpBtn");
 export const loginBtn = document.getElementById("loginBtn");
+export const googleLoginBtn = document.getElementById("googleLoginBtn");
 export const forgotPasswordBtn = document.getElementById("forgotPasswordBtn");
 export const switchAccountBtn = document.getElementById("switchAccountBtn");
 export const logoutBtn = document.getElementById("logoutBtn");
