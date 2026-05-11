@@ -10,7 +10,8 @@ import {
   signInWithEmailLink,
  deleteUser,
 GoogleAuthProvider,
-signInWithPopup
+signInWithRedirect,
+getRedirectResult
 } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
 
 import {
@@ -320,20 +321,7 @@ if (googleLoginBtn) {
       await signOut(auth).catch(() => {});
 
       const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
-      const user = result.user;
-
-      if (loginMessage) {
-        loginMessage.textContent = "Google sign-in successful.";
-      }
-
-      const userSnap = await getDoc(doc(db, "users", user.uid));
-
-      if (userSnap.exists()) {
-        window.location.href = "app.html";
-      } else {
-        window.location.href = "create-account.html";
-      }
+      await signInWithRedirect(auth, provider);
     } catch (error) {
       console.error("Google sign-in error:", error);
 
@@ -469,8 +457,27 @@ async function initApp() {
   try {
     await handleManualLoginMode();
     await handleEmailLinkSignIn();
+
+    const result = await getRedirectResult(auth);
+
+    if (result && result.user) {
+      const userSnap = await getDoc(doc(db, "users", result.user.uid));
+
+      if (userSnap.exists()) {
+        window.location.href = "app.html";
+        return;
+      } else {
+        window.location.href = "create-account.html";
+        return;
+      }
+    }
   } catch (error) {
     console.error("Startup auth init error:", error);
+
+    if (loginMessage) {
+      loginMessage.textContent =
+        error.message || "Could not complete Google sign-in.";
+    }
   }
 
   try {
