@@ -460,17 +460,26 @@ async function initApp() {
 
     const result = await getRedirectResult(auth);
 
-    if (result && result.user) {
-      const userSnap = await getDoc(doc(db, "users", result.user.uid));
+   if (result && result.user) {
+  const userSnap = await getDoc(doc(db, "users", result.user.uid));
 
-      if (userSnap.exists()) {
-        window.location.href = "app.html";
-        return;
-      } else {
-        window.location.href = "create-account.html";
-        return;
-      }
+  if (userSnap.exists()) {
+    const userData = userSnap.data();
+
+    if (
+      userData.firstName &&
+      userData.lastName &&
+      userData.country &&
+      userData.username
+    ) {
+      window.location.replace("app.html");
+      return;
     }
+  }
+
+  window.location.replace("create-account.html");
+  return;
+}
   } catch (error) {
     console.error("Startup auth init error:", error);
 
