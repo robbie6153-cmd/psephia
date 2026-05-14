@@ -326,7 +326,6 @@ export async function loadPolls() {
   try {
 const snap = await getDocs(query(
   collection(db, "polls"),
-  where("category", "==", getSelectedCategory()),
   orderBy("createdAt", "desc"),
   limit(30)
 ));
@@ -356,7 +355,7 @@ const sortedPollDocs = sortPollDocs(processedPollDocs, currentUid);
 
 for (const docItem of sortedPollDocs) {
   let p = docItem.data;
-
+if ((p.category || "Politics") !== getSelectedCategory()) continue;
       const options = Array.isArray(p.options) ? p.options : [];
       const selectedOption =
         currentUid && p.userVotes && typeof p.userVotes === "object"
