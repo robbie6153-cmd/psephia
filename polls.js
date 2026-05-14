@@ -237,9 +237,8 @@ export function startCountdownUpdater() {
       const remaining = endTime - Date.now();
 
       if (remaining <= 0) {
-  el.textContent = timerType === "results" ? "Results expired" : "Voting has ended";
-  return;
-}
+        el.textContent = timerType === "results" ? "Results expired" : "Voting has ended";
+        return;
       }
 
       if (timerType === "results") {
@@ -338,8 +337,7 @@ export async function loadPolls() {
     const processedPollDocs = [];
 
 for (const docItem of snap.docs) {
-  let p = docItem.data();
-  p = await processEliminatorPollIfNeeded(docItem.id, p);
+  const p = docItem.data();
 
   processedPollDocs.push({
     id: docItem.id,
