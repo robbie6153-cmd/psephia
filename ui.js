@@ -65,6 +65,7 @@ export const deleteProfileMessage = document.getElementById("deleteProfileMessag
 let selectedCategory = "Politics";
 let currentPollView = "open";
 let optionCount = 2;
+let eliminatorWarningShown = false;
 
 export function getSelectedCategory() {
   return selectedCategory;
@@ -92,10 +93,10 @@ export function setCurrentPollView(view) {
 
 export function resetOptionCount() {
   optionCount = 2;
+  eliminatorWarningShown = false;
 }
 
 export function incrementOptionCount() {
-  if (optionCount >= 5) return optionCount;
   optionCount += 1;
   return optionCount;
 }
@@ -254,7 +255,12 @@ export function initUi(loadPollsCallback) {
 
   if (addOptionBtn) {
     addOptionBtn.addEventListener("click", () => {
-      if (!extraOptions || getOptionCount() >= 5) return;
+      if (!extraOptions) return;
+
+      if (getOptionCount() >= 5 && !eliminatorWarningShown) {
+        alert("Polls with more than 5 choices will be eliminator polls, where the one with the fewest votes will be removed after 24 hours and the poll reopened.");
+        eliminatorWarningShown = true;
+      }
 
       const nextOptionNumber = incrementOptionCount();
 

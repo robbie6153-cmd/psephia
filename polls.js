@@ -41,6 +41,8 @@ import {
 
 let countdownInterval = null;
 
+const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+
 function trackEvent(eventName, eventData = {}) {
   try {
     if (!analytics) return;
@@ -50,17 +52,125 @@ function trackEvent(eventName, eventData = {}) {
   }
 }
 
-export function getEndsAtDate(pollData) {
-  if (!pollData?.closesAt) return null;
-  if (typeof pollData.closesAt.toDate === "function") return pollData.closesAt.toDate();
-  const date = new Date(pollData.closesAt);
+function getDateFromFirestoreValue(value) {
+  if (!value) return null;
+  if (typeof value.toDate === "function") return value.toDate();
+
+  const date = new Date(value);
   return Number.isNaN(date.getTime()) ? null : date;
+}
+
+export function getEndsAtDate(pollData) {
+  return getDateFromFirestoreValue(pollData?.closesAt);
+}
+
+function getNextEliminationDate(pollData) {
+  return getDateFromFirestoreValue(pollData?.nextEliminationAt);
 }
 
 export function hasPollEnded(pollData) {
   const endsAtDate = getEndsAtDate(pollData);
   if (!endsAtDate) return false;
   return Date.now() >= endsAtDate.getTime();
+}
+
+function isEliminatorPoll(pollData) {
+  return pollData?.isEliminator === true;
+}
+
+function getLowestVotedOption(options, votes) {
+  let lowestOption = options[0];
+  let lowestVotes = typeof votes[lowestOption] === "number" ? votes[lowestOption] : 0;
+
+  options.forEach((option) => {
+    const count = typeof votes[option] === "number" ? votes[option] : 0;
+
+    if (count < lowestVotes) {
+      lowestVotes = count;
+      lowestOption = option;
+    }
+  });
+
+  return lowestOption;
+}
+
+async function processEliminatorPollIfNeeded(pollId, pollData) {
+  if (!isEliminatorPoll(pollData)) return pollData;
+
+  let options = Array.isArray(pollData.options) ? [...pollData.options] : [];
+  if (options.length <= 5) return pollData;
+
+  const nextEliminationDate = getNextEliminationDate(pollData);
+  if (!nextEliminationDate) return pollData;
+
+  if (Date.now() < nextEliminationDate.getTime()) return pollData;
+
+  const votes = pollData.votes && typeof pollData.votes === "object" ? pollData.votes : {};
+  const eliminatedOption = getLowestVotedOption(options, votes);
+
+  options = options.filter((option) => option !== eliminatedOption);
+
+  const eliminatedOptions = Array.isArray(pollData.eliminatedOptions)
+    ? [...pollData.eliminatedOptions, eliminatedOption]
+    : [eliminatedOption];
+
+  const now = new Date();
+
+  const updateData = {
+    options,
+    votes: {},
+    userVotes: {},
+    votedBy: [],
+    eliminatedOptions,
+    lastEliminatedOption: eliminatedOption,
+    lastEliminatedAt: Timestamp.fromDate(now)
+  };
+
+  if (options.length > 5) {
+    const nextRoundDate = new Date(now.getTime() + ONE_DAY_MS);
+    updateData.nextEliminationAt = Timestamp.fromDate(nextRoundDate);
+    updateData.closesAt = Timestamp.fromDate(nextRoundDate);
+    updateData.eliminatorStatus = "active";
+  } else {
+    const finalClosesAt = new Date(now.getTime() + ONE_DAY_MS);
+    updateData.nextEliminationAt = null;
+    updateData.closesAt = Timestamp.fromDate(finalClosesAt);
+    updateData.eliminatorStatus = "final";
+  }
+
+  await updateDoc(doc(db, "polls", pollId), updateData);
+
+  return {
+    ...pollData,
+    ...updateData,
+    options,
+    votes: {},
+    userVotes: {},
+    votedBy: []
+  };
+}
+
+function getEliminatorInfoHtml(pollData) {
+  if (!isEliminatorPoll(pollData)) return "";
+
+  const options = Array.isArray(pollData.options) ? pollData.options : [];
+  const eliminatedOptions = Array.isArray(pollData.eliminatedOptions) ? pollData.eliminatedOptions : [];
+
+  let html = `<p class="poll-eliminator-note"><strong>Eliminator poll:</strong>`;
+
+  if (options.length > 5) {
+    html += ` The option with the fewest votes will be removed after this round, then voting will reopen.`;
+  } else {
+    html += ` This poll has reached the final 5 choices.`;
+  }
+
+  html += `</p>`;
+
+  if (eliminatedOptions.length > 0) {
+    html += `<p class="poll-eliminated">Eliminated so far: ${escapeHtml(eliminatedOptions.join(", "))}</p>`;
+  }
+
+  return html;
 }
 
 export function formatTimeRemainingFromMs(ms) {
@@ -193,10 +303,12 @@ export async function loadPolls() {
     const now = new Date();
     let hasVisiblePolls = false;
 
-    snap.forEach((docItem) => {
-      const p = docItem.data();
+    for (const docItem of snap.docs) {
+      let p = docItem.data();
 
-      if ((p.category || "Politics") !== getSelectedCategory()) return;
+      p = await processEliminatorPollIfNeeded(docItem.id, p);
+
+      if ((p.category || "Politics") !== getSelectedCategory()) continue;
 
       const options = Array.isArray(p.options) ? p.options : [];
       const selectedOption =
@@ -213,12 +325,12 @@ export async function loadPolls() {
         showThisPoll = !pollEnded;
       } else if (getCurrentPollView() === "results") {
         if (pollEnded && endsAtDate) {
-          const resultsExpiryTime = endsAtDate.getTime() + 24 * 60 * 60 * 1000;
+          const resultsExpiryTime = endsAtDate.getTime() + ONE_DAY_MS;
           showThisPoll = now.getTime() < resultsExpiryTime;
         }
       }
 
-      if (!showThisPoll) return;
+      if (!showThisPoll) continue;
 
       hasVisiblePolls = true;
 
@@ -231,7 +343,7 @@ export async function loadPolls() {
       }
 
       if (getCurrentPollView() === "results" && endsAtDate) {
-        const resultsExpiryDate = new Date(endsAtDate.getTime() + 24 * 60 * 60 * 1000);
+        const resultsExpiryDate = new Date(endsAtDate.getTime() + ONE_DAY_MS);
         timerHtml = `<p class="poll-timer" data-end-time="${resultsExpiryDate.getTime()}" data-timer-type="results">Results disappear in ${escapeHtml(getTimeRemainingText(resultsExpiryDate))}</p>`;
       }
 
@@ -255,11 +367,12 @@ export async function loadPolls() {
         <div class="poll">
           <strong>${escapeHtml(p.question || "")}</strong>
           <p class="poll-author">Poll created by: ${escapeHtml(p.createdBy || "Anonymous")}</p>
+          ${getEliminatorInfoHtml(p)}
           ${timerHtml}
           ${contentHtml}
         </div>
       `;
-    });
+    }
 
     if (!hasVisiblePolls) {
       pollsDiv.innerHTML = getCurrentPollView() === "open"
@@ -293,10 +406,18 @@ export async function voteOnPoll(pollId, option) {
       return;
     }
 
-    const selectedPoll = pollSnap.data();
+    let selectedPoll = pollSnap.data();
+    selectedPoll = await processEliminatorPollIfNeeded(pollId, selectedPoll);
 
     if (hasPollEnded(selectedPoll)) {
       showVoteMessage("Voting on this poll has ended.", true);
+      await loadPolls();
+      return;
+    }
+
+    const currentOptions = Array.isArray(selectedPoll.options) ? selectedPoll.options : [];
+    if (!currentOptions.includes(option)) {
+      showVoteMessage("This option is no longer available.", true);
       await loadPolls();
       return;
     }
@@ -324,7 +445,7 @@ export async function voteOnPoll(pollId, option) {
       poll_id: pollId,
       category: selectedPoll.category || "Unknown",
       option_text_length: option.length,
-      option_count: Array.isArray(selectedPoll.options) ? selectedPoll.options.length : 0
+      option_count: currentOptions.length
     });
 
     showVoteMessage("Your vote has been received.", false);
@@ -342,18 +463,25 @@ export async function loadMyPolls(user) {
 
   try {
     const snap = await getDocs(query(collection(db, "polls"), orderBy("createdAt", "desc")));
-  const myDocs = snap.docs.filter((pollDoc) => {
-  const poll = pollDoc.data();
-  return poll.createdByUid === user.uid && !hasPollEnded(poll);
-});
+
+    const processedDocs = [];
+
+    for (const pollDoc of snap.docs) {
+      let poll = pollDoc.data();
+      poll = await processEliminatorPollIfNeeded(pollDoc.id, poll);
+      processedDocs.push({ pollDoc, poll });
+    }
+
+    const myDocs = processedDocs.filter(({ poll }) => {
+      return poll.createdByUid === user.uid && !hasPollEnded(poll);
+    });
 
     if (myDocs.length === 0) {
       myPollsList.innerHTML = "<p>You have no active polls.</p>";
       return;
     }
 
-    myDocs.forEach((pollDoc) => {
-      const poll = pollDoc.data();
+    myDocs.forEach(({ pollDoc, poll }) => {
       const pollId = pollDoc.id;
 
       const pollEl = document.createElement("div");
@@ -364,6 +492,7 @@ export async function loadMyPolls(user) {
           <div>
             <h3>${escapeHtml(poll.question || "Untitled poll")}</h3>
             <p><strong>Category:</strong> ${escapeHtml(poll.category || "Other")}</p>
+            ${isEliminatorPoll(poll) ? `<p><strong>Type:</strong> Eliminator poll</p>` : ""}
           </div>
           <div class="poll-menu-wrapper">
             <button class="poll-menu-btn" type="button" data-poll-menu="${pollId}">⋯</button>
@@ -490,9 +619,19 @@ export function initPollEvents() {
         return;
       }
 
+      const isEliminator = options.length > 5;
+
+      if (isEliminator) {
+        alert("Polls with more than 5 choices will be eliminator polls, where the one with the fewest votes will be removed after 24 hours and the poll reopened.");
+      }
+
       try {
         const createdAt = new Date();
-        const closesAt = new Date(createdAt.getTime() + durationDays * 24 * 60 * 60 * 1000);
+
+        const firstClosesAt = isEliminator
+          ? new Date(createdAt.getTime() + ONE_DAY_MS)
+          : new Date(createdAt.getTime() + durationDays * ONE_DAY_MS);
+
         const user = auth.currentUser;
 
         const userDoc = await getDoc(doc(db, "users", user.uid));
@@ -505,24 +644,35 @@ export function initPollEvents() {
 
         const creatorData = userDoc.data();
 
-        const newPollRef = await addDoc(collection(db, "polls"), {
+        const pollData = {
           question,
           category,
           options,
           createdAt: Timestamp.fromDate(createdAt),
-          closesAt: Timestamp.fromDate(closesAt),
+          closesAt: Timestamp.fromDate(firstClosesAt),
           createdBy: creatorData.username || "Anonymous",
           createdByUid: user.uid,
           votes: {},
           userVotes: {},
-          votedBy: []
-        });
+          votedBy: [],
+          isEliminator,
+          eliminatorStatus: isEliminator ? "active" : "none",
+          eliminatedOptions: [],
+          originalDurationDays: durationDays
+        };
+
+        if (isEliminator) {
+          pollData.nextEliminationAt = Timestamp.fromDate(firstClosesAt);
+        }
+
+        const newPollRef = await addDoc(collection(db, "polls"), pollData);
 
         trackEvent("poll_created", {
           poll_id: newPollRef.id,
           category: category,
           option_count: options.length,
-          duration_days: durationDays
+          duration_days: durationDays,
+          is_eliminator: isEliminator
         });
 
         if (pollQuestion) pollQuestion.value = "";
