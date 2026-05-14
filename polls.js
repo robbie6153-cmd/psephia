@@ -4,9 +4,11 @@ import {
   addDoc,
   getDocs,
   Timestamp,
-  query,
-  orderBy,
-  doc,
+ query,
+orderBy,
+where,
+limit,
+doc,
   getDoc,
   updateDoc,
   setDoc,
@@ -322,7 +324,12 @@ export async function loadPolls() {
   if (!pollsDiv) return;
 
   try {
-    const snap = await getDocs(query(collection(db, "polls"), orderBy("createdAt", "desc")));
+const snap = await getDocs(query(
+  collection(db, "polls"),
+  where("category", "==", getSelectedCategory()),
+  orderBy("createdAt", "desc"),
+  limit(30)
+));
     pollsDiv.innerHTML = "";
 
     if (snap.empty) {
@@ -349,8 +356,6 @@ const sortedPollDocs = sortPollDocs(processedPollDocs, currentUid);
 
 for (const docItem of sortedPollDocs) {
   let p = docItem.data;
-
-  if ((p.category || "Politics") !== getSelectedCategory()) continue;
 
       const options = Array.isArray(p.options) ? p.options : [];
       const selectedOption =
