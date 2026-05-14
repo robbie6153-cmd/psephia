@@ -237,9 +237,9 @@ export function startCountdownUpdater() {
       const remaining = endTime - Date.now();
 
       if (remaining <= 0) {
-        el.textContent = timerType === "results" ? "Results expired" : "Voting has ended";
-        loadPolls();
-        return;
+  el.textContent = timerType === "results" ? "Results expired" : "Voting has ended";
+  return;
+}
       }
 
       if (timerType === "results") {
