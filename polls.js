@@ -36,7 +36,8 @@ import {
   showUserDetailsView,
   showVoteMessage,
   hideVoteMessage,
-  escapeHtml
+  escapeHtml,
+  pollSortSelect
 } from "./ui.js";
 
 let countdownInterval = null;
@@ -286,7 +287,38 @@ export async function saveUserDetails() {
     if (detailsMessage) detailsMessage.textContent = "Could not save your details.";
   }
 }
+function getTotalVotes(pollData) {
+  const votes = pollData.votes && typeof pollData.votes === "object" ? pollData.votes : {};
+  return Object.values(votes).reduce((total, count) => {
+    return total + (typeof count === "number" ? count : 0);
+  }, 0);
+}
 
+function sortPollDocs(pollDocs, currentUid) {
+  const sortValue = pollSortSelect?.value || "longest";
+
+  return pollDocs.sort((a, b) => {
+    const pollA = a.data;
+    const pollB = b.data;
+
+    const endsA = getEndsAtDate(pollA)?.getTime() || 0;
+    const endsB = getEndsAtDate(pollB)?.getTime() || 0;
+
+    const votedA = currentUid && pollA.userVotes && pollA.userVotes[currentUid] ? 1 : 0;
+    const votedB = currentUid && pollB.userVotes && pollB.userVotes[currentUid] ? 1 : 0;
+
+    const totalA = getTotalVotes(pollA);
+    const totalB = getTotalVotes(pollB);
+
+    if (sortValue === "longest") return endsB - endsA;
+    if (sortValue === "shortest") return endsA - endsB;
+    if (sortValue === "voted") return votedB - votedA;
+    if (sortValue === "not-voted") return votedA - votedB;
+    if (sortValue === "popular") return totalB - totalA;
+
+    return 0;
+  });
+}
 export async function loadPolls() {
   if (!pollsDiv) return;
 
@@ -303,12 +335,24 @@ export async function loadPolls() {
     const now = new Date();
     let hasVisiblePolls = false;
 
-    for (const docItem of snap.docs) {
-      let p = docItem.data();
+    const processedPollDocs = [];
 
-      p = await processEliminatorPollIfNeeded(docItem.id, p);
+for (const docItem of snap.docs) {
+  let p = docItem.data();
+  p = await processEliminatorPollIfNeeded(docItem.id, p);
 
-      if ((p.category || "Politics") !== getSelectedCategory()) continue;
+  processedPollDocs.push({
+    id: docItem.id,
+    data: p
+  });
+}
+
+const sortedPollDocs = sortPollDocs(processedPollDocs, currentUid);
+
+for (const docItem of sortedPollDocs) {
+  let p = docItem.data;
+
+  if ((p.category || "Politics") !== getSelectedCategory()) continue;
 
       const options = Array.isArray(p.options) ? p.options : [];
       const selectedOption =

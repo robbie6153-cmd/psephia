@@ -66,7 +66,16 @@
   <span id="voteMessageText"></span>
   <button id="closeVoteMessageBtn" class="close-btn">×</button>
 </div>
-
+<div class="poll-sort-row">
+  <label for="pollSortSelect">Sort by</label>
+  <select id="pollSortSelect">
+    <option value="longest">Longest time left</option>
+    <option value="shortest">Shortest time left</option>
+    <option value="voted">Polls I’ve voted</option>
+    <option value="not-voted">Polls I’ve not voted</option>
+    <option value="popular">Most popular</option>
+  </select>
+</div>
         <div id="polls"></div>
       </div>
     </section>

@@ -35,6 +35,7 @@ export const pollsCard = document.getElementById("pollsCard");
 export const categoryTabs = document.querySelectorAll(".category-tab[data-category]");
 export const openPollsTab = document.getElementById("openPollsTab");
 export const resultsPollsTab = document.getElementById("resultsPollsTab");
+export const pollSortSelect = document.getElementById("pollSortSelect");
 
 // ===== PROFILE PAGE ELEMENTS =====
 export const profileAuthView = document.getElementById("profileAuthView");
@@ -216,7 +217,12 @@ export function setProfileInputsDisabled(disabled) {
 // ===== INIT =====
 export function initUi(loadPollsCallback) {
   initMenu();
-
+if (pollSortSelect) {
+  pollSortSelect.addEventListener("change", () => {
+    hideVoteMessage();
+    loadPollsCallback();
+  });
+}
   if (closeVoteMessageBtn) {
     closeVoteMessageBtn.addEventListener("click", () => {
       hideVoteMessage();
