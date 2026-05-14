@@ -512,11 +512,10 @@ export async function loadMyPolls(user) {
 
     const processedDocs = [];
 
-    for (const pollDoc of snap.docs) {
-      let poll = pollDoc.data();
-      poll = await processEliminatorPollIfNeeded(pollDoc.id, poll);
-      processedDocs.push({ pollDoc, poll });
-    }
+  for (const pollDoc of snap.docs) {
+  const poll = pollDoc.data();
+  processedDocs.push({ pollDoc, poll });
+}
 
     const myDocs = processedDocs.filter(({ poll }) => {
       return poll.createdByUid === user.uid && !hasPollEnded(poll);
