@@ -220,14 +220,6 @@ export function initUi(loadPollsCallback) {
 if (pollSortSelect) {
   pollSortSelect.addEventListener("change", () => {
     hideVoteMessage();
-
-    const polls = Array.from(document.querySelectorAll(".poll"));
-    const pollsContainer = document.getElementById("polls");
-    if (!pollsContainer) return;
-
-    pollsContainer.innerHTML = "";
-    polls.forEach((poll) => pollsContainer.appendChild(poll));
-
     loadPollsCallback();
   });
 }

@@ -458,9 +458,13 @@ async function initApp() {
     await handleManualLoginMode();
     await handleEmailLinkSignIn();
 
-    const result = await getRedirectResult(auth);
+   let result = null;
 
-   if (result && result.user) {
+if (isProfilePage) {
+  result = await getRedirectResult(auth);
+}
+
+if (result && result.user) {
   const userSnap = await getDoc(doc(db, "users", result.user.uid));
 
   if (userSnap.exists()) {
