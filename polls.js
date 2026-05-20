@@ -45,9 +45,16 @@ import {
   pollSortSelect
 } from "./ui.js";
 
+let cachedPollDocs = [];
+let pollsLoadedOnce = false;
 let countdownInterval = null;
 
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+
+function refreshPollCache() {
+  pollsLoadedOnce = false;
+  cachedPollDocs = [];
+}
 
 function trackEvent(eventName, eventData = {}) {
   try {
@@ -170,6 +177,7 @@ async function processEliminatorPollIfNeeded(pollId, pollData) {
   }
 
   await updateDoc(doc(db, "polls", pollId), updateData);
+  refreshPollCache();
 
   return {
     ...pollData,
@@ -321,6 +329,7 @@ export async function saveUserDetails() {
     });
 
     if (detailsMessage) detailsMessage.textContent = "Details saved.";
+    refreshPollCache();
     showPollsView();
     await loadPolls();
   } catch (error) {
@@ -365,20 +374,27 @@ function sortPollDocs(pollDocs, currentUid) {
 export async function loadPolls() {
   if (!pollsDiv) return;
 
-  console.log("loadPolls running:", getSelectedCategory(), new Date().toLocaleTimeString());
-
   try {
-    pollsDiv.innerHTML = "<p>Loading polls...</p>";
+    if (!pollsLoadedOnce) {
+      pollsDiv.innerHTML = "<p>Loading polls...</p>";
 
-    const snap = await getDocs(query(
-      collection(db, "polls"),
-      orderBy("createdAt", "desc"),
-      limit(30)
-    ));
+      const snap = await getDocs(query(
+        collection(db, "polls"),
+        orderBy("createdAt", "desc"),
+        limit(30)
+      ));
+
+      cachedPollDocs = snap.docs.map((docItem) => ({
+        id: docItem.id,
+        data: docItem.data()
+      }));
+
+      pollsLoadedOnce = true;
+    }
 
     pollsDiv.innerHTML = "";
 
-    if (snap.empty) {
+    if (cachedPollDocs.length === 0) {
       pollsDiv.innerHTML = "<p>No polls yet.</p>";
       return;
     }
@@ -387,21 +403,10 @@ export async function loadPolls() {
     const now = new Date();
     let hasVisiblePolls = false;
 
-    const processedPollDocs = [];
-
-    for (const docItem of snap.docs) {
-      const p = docItem.data();
-
-      processedPollDocs.push({
-        id: docItem.id,
-        data: p
-      });
-    }
-
-    const sortedPollDocs = sortPollDocs(processedPollDocs, currentUid);
+    const sortedPollDocs = sortPollDocs([...cachedPollDocs], currentUid);
 
     for (const docItem of sortedPollDocs) {
-      let p = docItem.data;
+      const p = docItem.data;
 
       if ((p.category || "Politics") !== getSelectedCategory()) continue;
 
@@ -508,6 +513,7 @@ export async function voteOnPoll(pollId, option) {
 
     if (hasPollEnded(selectedPoll)) {
       showVoteMessage("Voting on this poll has ended.", true);
+      refreshPollCache();
       await loadPolls();
       return;
     }
@@ -515,6 +521,7 @@ export async function voteOnPoll(pollId, option) {
     const currentOptions = Array.isArray(selectedPoll.options) ? selectedPoll.options : [];
     if (!currentOptions.includes(option)) {
       showVoteMessage("This option is no longer available.", true);
+      refreshPollCache();
       await loadPolls();
       return;
     }
@@ -546,6 +553,7 @@ export async function voteOnPoll(pollId, option) {
     });
 
     showVoteMessage("Your vote has been received.", false);
+    refreshPollCache();
     await loadPolls();
   } catch (error) {
     console.error("Voting error:", error);
@@ -561,16 +569,9 @@ export async function loadMyPolls(user) {
   try {
     const snap = await getDocs(query(collection(db, "polls"), orderBy("createdAt", "desc")));
 
-    const processedDocs = [];
-
-    for (const pollDoc of snap.docs) {
-      const poll = pollDoc.data();
-      processedDocs.push({ pollDoc, poll });
-    }
-
-    const myDocs = processedDocs.filter(({ poll }) => {
-      return poll.createdByUid === user.uid && !hasPollEnded(poll);
-    });
+    const myDocs = snap.docs
+      .map((pollDoc) => ({ pollDoc, poll: pollDoc.data() }))
+      .filter(({ poll }) => poll.createdByUid === user.uid && !hasPollEnded(poll));
 
     if (myDocs.length === 0) {
       myPollsList.innerHTML = "<p>You have no active polls.</p>";
@@ -630,6 +631,7 @@ export function attachMyPollMenuEvents() {
 
       try {
         await deleteDoc(doc(db, "polls", pollId));
+        refreshPollCache();
         await loadMyPolls(auth.currentUser);
       } catch (error) {
         console.error("Delete poll error:", error);
@@ -676,6 +678,7 @@ export async function deleteProfilePollData(user) {
       }
     }
 
+    refreshPollCache();
     return true;
   } catch (error) {
     console.error("Delete profile poll data error:", error);
@@ -772,7 +775,7 @@ export function initPollEvents() {
 
         trackEvent("poll_created", {
           poll_id: newPollRef.id,
-          category: category,
+          category,
           option_count: options.length,
           duration_days: durationDays,
           is_eliminator: isEliminator
@@ -789,6 +792,7 @@ export function initPollEvents() {
         if (extraOptions) extraOptions.innerHTML = "";
         resetOptionCount();
 
+        refreshPollCache();
         hideVoteMessage();
         showPollsView();
         await loadPolls();
