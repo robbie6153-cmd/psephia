@@ -464,6 +464,9 @@ if (user) {
   await loadPolls();
 }
 
+  });
+}
+
 // ===== START APP =====
 async function initApp() {
   try {
