@@ -430,26 +430,38 @@ function initAuthState() {
       return;
     }
 
-    if (user) {
-      try {
-        const userSnap = await getDoc(doc(db, "users", user.uid));
+if (user) {
+  try {
+    const userSnap = await getDoc(doc(db, "users", user.uid));
 
-        if (userSnap.exists()) {
-          showPollsView();
-          await loadPolls();
-        } else {
-          showUserDetailsView();
-        }
-      } catch (error) {
-        console.error("Profile check error:", error);
+    if (userSnap.exists()) {
+      const userData = userSnap.data();
+
+      const needsAccountUpdate =
+        !userData.ageRange ||
+        !userData.gender ||
+        !userData.ethnicity ||
+        !userData.religion;
+
+      if (needsAccountUpdate) {
+        alert("We’ve updated Psephia accounts and need a few extra details before you continue.");
         showUserDetailsView();
+        return;
       }
-    } else {
-      hideVoteMessage();
+
       showPollsView();
       await loadPolls();
+    } else {
+      showUserDetailsView();
     }
-  });
+  } catch (error) {
+    console.error("Profile check error:", error);
+    showUserDetailsView();
+  }
+} else {
+  hideVoteMessage();
+  showPollsView();
+  await loadPolls();
 }
 
 // ===== START APP =====
