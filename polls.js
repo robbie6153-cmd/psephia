@@ -4,11 +4,10 @@ import {
   addDoc,
   getDocs,
   Timestamp,
- query,
-orderBy,
-where,
-limit,
-doc,
+  query,
+  orderBy,
+  limit,
+  doc,
   getDoc,
   updateDoc,
   setDoc,
@@ -65,6 +64,31 @@ function getDateFromFirestoreValue(value) {
 
 export function getEndsAtDate(pollData) {
   return getDateFromFirestoreValue(pollData?.closesAt);
+}
+
+function getCreatedAtDate(pollData) {
+  return getDateFromFirestoreValue(pollData?.createdAt);
+}
+
+function getResultsExpiryDate(pollData) {
+  const createdAtDate = getCreatedAtDate(pollData);
+  const endsAtDate = getEndsAtDate(pollData);
+
+  if (!endsAtDate) return null;
+
+  let openDurationMs = ONE_DAY_MS;
+
+  if (createdAtDate) {
+    openDurationMs = endsAtDate.getTime() - createdAtDate.getTime();
+  } else if (pollData?.originalDurationDays) {
+    openDurationMs = Number(pollData.originalDurationDays) * ONE_DAY_MS;
+  }
+
+  if (!openDurationMs || openDurationMs < ONE_DAY_MS) {
+    openDurationMs = ONE_DAY_MS;
+  }
+
+  return new Date(endsAtDate.getTime() + openDurationMs);
 }
 
 function getNextEliminationDate(pollData) {
@@ -288,6 +312,7 @@ export async function saveUserDetails() {
     if (detailsMessage) detailsMessage.textContent = "Could not save your details.";
   }
 }
+
 function getTotalVotes(pollData) {
   const votes = pollData.votes && typeof pollData.votes === "object" ? pollData.votes : {};
   return Object.values(votes).reduce((total, count) => {
@@ -320,15 +345,17 @@ function sortPollDocs(pollDocs, currentUid) {
     return 0;
   });
 }
+
 export async function loadPolls() {
   if (!pollsDiv) return;
 
   try {
-const snap = await getDocs(query(
-  collection(db, "polls"),
-  orderBy("createdAt", "desc"),
-  limit(30)
-));
+    const snap = await getDocs(query(
+      collection(db, "polls"),
+      orderBy("createdAt", "desc"),
+      limit(30)
+    ));
+
     pollsDiv.innerHTML = "";
 
     if (snap.empty) {
@@ -342,20 +369,22 @@ const snap = await getDocs(query(
 
     const processedPollDocs = [];
 
-for (const docItem of snap.docs) {
-  const p = docItem.data();
+    for (const docItem of snap.docs) {
+      const p = docItem.data();
 
-  processedPollDocs.push({
-    id: docItem.id,
-    data: p
-  });
-}
+      processedPollDocs.push({
+        id: docItem.id,
+        data: p
+      });
+    }
 
-const sortedPollDocs = sortPollDocs(processedPollDocs, currentUid);
+    const sortedPollDocs = sortPollDocs(processedPollDocs, currentUid);
 
-for (const docItem of sortedPollDocs) {
-  let p = docItem.data;
-if ((p.category || "Politics") !== getSelectedCategory()) continue;
+    for (const docItem of sortedPollDocs) {
+      let p = docItem.data;
+
+      if ((p.category || "Politics") !== getSelectedCategory()) continue;
+
       const options = Array.isArray(p.options) ? p.options : [];
       const selectedOption =
         currentUid && p.userVotes && typeof p.userVotes === "object"
@@ -371,8 +400,8 @@ if ((p.category || "Politics") !== getSelectedCategory()) continue;
         showThisPoll = !pollEnded;
       } else if (getCurrentPollView() === "results") {
         if (pollEnded && endsAtDate) {
-          const resultsExpiryTime = endsAtDate.getTime() + ONE_DAY_MS;
-          showThisPoll = now.getTime() < resultsExpiryTime;
+          const resultsExpiryDate = getResultsExpiryDate(p);
+          showThisPoll = resultsExpiryDate && now.getTime() < resultsExpiryDate.getTime();
         }
       }
 
@@ -389,8 +418,10 @@ if ((p.category || "Politics") !== getSelectedCategory()) continue;
       }
 
       if (getCurrentPollView() === "results" && endsAtDate) {
-        const resultsExpiryDate = new Date(endsAtDate.getTime() + ONE_DAY_MS);
-        timerHtml = `<p class="poll-timer" data-end-time="${resultsExpiryDate.getTime()}" data-timer-type="results">Results disappear in ${escapeHtml(getTimeRemainingText(resultsExpiryDate))}</p>`;
+        const resultsExpiryDate = getResultsExpiryDate(p);
+        timerHtml = resultsExpiryDate
+          ? `<p class="poll-timer" data-end-time="${resultsExpiryDate.getTime()}" data-timer-type="results">Results disappear in ${escapeHtml(getTimeRemainingText(resultsExpiryDate))}</p>`
+          : "";
       }
 
       let contentHtml = "";
@@ -512,10 +543,10 @@ export async function loadMyPolls(user) {
 
     const processedDocs = [];
 
-  for (const pollDoc of snap.docs) {
-  const poll = pollDoc.data();
-  processedDocs.push({ pollDoc, poll });
-}
+    for (const pollDoc of snap.docs) {
+      const poll = pollDoc.data();
+      processedDocs.push({ pollDoc, poll });
+    }
 
     const myDocs = processedDocs.filter(({ poll }) => {
       return poll.createdByUid === user.uid && !hasPollEnded(poll);
@@ -689,6 +720,10 @@ export function initPollEvents() {
 
         const creatorData = userDoc.data();
 
+        const wantsEmailNotification = confirm(
+          "Do you wish to be notified by email of your poll results?"
+        );
+
         const pollData = {
           question,
           category,
@@ -703,7 +738,10 @@ export function initPollEvents() {
           isEliminator,
           eliminatorStatus: isEliminator ? "active" : "none",
           eliminatedOptions: [],
-          originalDurationDays: durationDays
+          originalDurationDays: durationDays,
+          notifyCreatorByEmail: wantsEmailNotification,
+          creatorEmail: user.email || "",
+          resultsEmailSent: false
         };
 
         if (isEliminator) {
