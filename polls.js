@@ -365,7 +365,11 @@ function sortPollDocs(pollDocs, currentUid) {
 export async function loadPolls() {
   if (!pollsDiv) return;
 
+  console.log("loadPolls running:", getSelectedCategory(), new Date().toLocaleTimeString());
+
   try {
+    pollsDiv.innerHTML = "<p>Loading polls...</p>";
+
     const snap = await getDocs(query(
       collection(db, "polls"),
       orderBy("createdAt", "desc"),
