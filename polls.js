@@ -25,6 +25,10 @@ import {
   firstNameInput,
   lastNameInput,
   countryInput,
+  ageRangeInput,
+  genderInput,
+  ethnicityInput,
+  religionInput,
   usernameInput,
   detailsMessage,
   saveDetailsBtn,
@@ -282,9 +286,13 @@ export async function saveUserDetails() {
   const firstName = firstNameInput?.value.trim() || "";
   const lastName = lastNameInput?.value.trim() || "";
   const country = countryInput?.value.trim() || "";
+  const ageRange = ageRangeInput?.value.trim() || "";
+  const gender = genderInput?.value.trim() || "";
+  const ethnicity = ethnicityInput?.value.trim() || "";
+  const religion = religionInput?.value.trim() || "";
   const username = usernameInput?.value.trim() || "";
 
-  if (!firstName || !lastName || !country || !username) {
+  if (!firstName || !lastName || !country || !ageRange || !gender || !ethnicity || !religion || !username) {
     if (detailsMessage) detailsMessage.textContent = "Please complete all fields.";
     return;
   }
@@ -296,12 +304,20 @@ export async function saveUserDetails() {
       firstName,
       lastName,
       country,
+      ageRange,
+      gender,
+      ethnicity,
+      religion,
       username
     });
 
     trackEvent("signup_complete", {
       username_length: username.length,
-      country: country
+      country,
+      age_range: ageRange,
+      gender,
+      ethnicity,
+      religion
     });
 
     if (detailsMessage) detailsMessage.textContent = "Details saved.";
