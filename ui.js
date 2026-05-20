@@ -36,7 +36,6 @@ export const categoryTabs = document.querySelectorAll(".category-tab[data-catego
 export const openPollsTab = document.getElementById("openPollsTab");
 export const resultsPollsTab = document.getElementById("resultsPollsTab");
 export const pollSortSelect = document.getElementById("pollSortSelect");
-export const countryInput = document.getElementById("country");
 export const ageRangeInput = document.getElementById("ageRange");
 export const genderInput = document.getElementById("gender");
 export const ethnicityInput = document.getElementById("ethnicity");
