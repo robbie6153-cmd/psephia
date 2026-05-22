@@ -11,7 +11,8 @@ import {
   getDoc,
   updateDoc,
   setDoc,
-  deleteDoc
+  deleteDoc,
+  where
 } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 import { logEvent } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-analytics.js";
 
@@ -570,11 +571,16 @@ export async function loadMyPolls(user) {
   myPollsList.innerHTML = "";
 
   try {
-    const snap = await getDocs(query(collection(db, "polls"), orderBy("createdAt", "desc")));
+    const snap = await getDocs(query(
+      collection(db, "polls"),
+      where("createdByUid", "==", user.uid),
+      orderBy("createdAt", "desc"),
+      limit(20)
+    ));
 
     const myDocs = snap.docs
       .map((pollDoc) => ({ pollDoc, poll: pollDoc.data() }))
-      .filter(({ poll }) => poll.createdByUid === user.uid && !hasPollEnded(poll));
+      .filter(({ poll }) => !hasPollEnded(poll));
 
     if (myDocs.length === 0) {
       myPollsList.innerHTML = "<p>You have no active polls.</p>";
@@ -611,37 +617,6 @@ export async function loadMyPolls(user) {
     console.error("Load my polls error:", error);
     myPollsList.innerHTML = "<p>Could not load your polls.</p>";
   }
-}
-
-export function attachMyPollMenuEvents() {
-  document.querySelectorAll("[data-poll-menu]").forEach((button) => {
-    button.addEventListener("click", (event) => {
-      event.stopPropagation();
-      const pollId = button.getAttribute("data-poll-menu");
-      const menu = document.getElementById(`pollMenu-${pollId}`);
-      document.querySelectorAll(".poll-menu-dropdown.show").forEach((m) => m.classList.remove("show"));
-      if (menu) menu.classList.toggle("show");
-    });
-  });
-
-  document.querySelectorAll("[data-delete-poll]").forEach((button) => {
-    button.addEventListener("click", async () => {
-      const pollId = button.getAttribute("data-delete-poll");
-      if (!pollId) return;
-
-      const confirmed = confirm("Are you sure you want to delete this poll?");
-      if (!confirmed) return;
-
-      try {
-        await deleteDoc(doc(db, "polls", pollId));
-        refreshPollCache();
-        await loadMyPolls(auth.currentUser);
-      } catch (error) {
-        console.error("Delete poll error:", error);
-        alert("Could not delete poll.");
-      }
-    });
-  });
 }
 
 export async function deleteProfilePollData(user) {
@@ -756,6 +731,7 @@ export function initPollEvents() {
           options,
           createdAt: Timestamp.fromDate(createdAt),
           closesAt: Timestamp.fromDate(firstClosesAt),
+          deleteAfter: Timestamp.fromDate(new Date(firstClosesAt.getTime() + (durationDays * ONE_DAY_MS))),
           createdBy: creatorData.username || "Anonymous",
           createdByUid: user.uid,
           votes: {},
