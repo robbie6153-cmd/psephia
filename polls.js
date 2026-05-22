@@ -392,8 +392,6 @@ export async function loadPolls() {
       pollsLoadedOnce = true;
     }
 
-    pollsDiv.innerHTML = "";
-
     if (cachedPollDocs.length === 0) {
       pollsDiv.innerHTML = "<p>No polls yet.</p>";
       return;
@@ -402,13 +400,16 @@ export async function loadPolls() {
     const currentUid = auth.currentUser?.uid || null;
     const now = new Date();
     let hasVisiblePolls = false;
+    let pollsHtml = "";
 
+    const selectedCategory = getSelectedCategory();
+    const currentPollView = getCurrentPollView();
     const sortedPollDocs = sortPollDocs([...cachedPollDocs], currentUid);
 
     for (const docItem of sortedPollDocs) {
       const p = docItem.data;
 
-      if ((p.category || "Politics") !== getSelectedCategory()) continue;
+      if ((p.category || "Politics") !== selectedCategory) continue;
 
       const options = Array.isArray(p.options) ? p.options : [];
       const selectedOption =
@@ -421,9 +422,9 @@ export async function loadPolls() {
 
       let showThisPoll = false;
 
-      if (getCurrentPollView() === "open") {
+      if (currentPollView === "open") {
         showThisPoll = !pollEnded;
-      } else if (getCurrentPollView() === "results") {
+      } else if (currentPollView === "results") {
         if (pollEnded && endsAtDate) {
           const resultsExpiryDate = getResultsExpiryDate(p);
           showThisPoll = resultsExpiryDate && now.getTime() < resultsExpiryDate.getTime();
@@ -436,13 +437,13 @@ export async function loadPolls() {
 
       let timerHtml = "";
 
-      if (getCurrentPollView() === "open") {
+      if (currentPollView === "open") {
         timerHtml = endsAtDate
           ? `<p class="poll-timer" data-end-time="${endsAtDate.getTime()}" data-timer-type="open">${escapeHtml(formatTimeRemainingFromMs(endsAtDate.getTime() - Date.now()))}</p>`
           : `<p class="poll-timer">No end time set</p>`;
       }
 
-      if (getCurrentPollView() === "results" && endsAtDate) {
+      if (currentPollView === "results" && endsAtDate) {
         const resultsExpiryDate = getResultsExpiryDate(p);
         timerHtml = resultsExpiryDate
           ? `<p class="poll-timer" data-end-time="${resultsExpiryDate.getTime()}" data-timer-type="results">Results disappear in ${escapeHtml(getTimeRemainingText(resultsExpiryDate))}</p>`
@@ -451,7 +452,7 @@ export async function loadPolls() {
 
       let contentHtml = "";
 
-      if (getCurrentPollView() === "results") {
+      if (currentPollView === "results") {
         contentHtml = getPollResultsHtml(p);
       } else {
         contentHtml = options.map((option) => {
@@ -465,7 +466,7 @@ export async function loadPolls() {
         }).join("");
       }
 
-      pollsDiv.innerHTML += `
+      pollsHtml += `
         <div class="poll">
           <strong>${escapeHtml(p.question || "")}</strong>
           <p class="poll-author">Poll created by: ${escapeHtml(p.createdBy || "Anonymous")}</p>
@@ -477,9 +478,11 @@ export async function loadPolls() {
     }
 
     if (!hasVisiblePolls) {
-      pollsDiv.innerHTML = getCurrentPollView() === "open"
+      pollsDiv.innerHTML = currentPollView === "open"
         ? "<p>No open polls in this category yet.</p>"
         : "<p>No recent results in this category yet.</p>";
+    } else {
+      pollsDiv.innerHTML = pollsHtml;
     }
 
     startCountdownUpdater();
