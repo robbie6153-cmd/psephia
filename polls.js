@@ -666,31 +666,41 @@ export async function deleteProfilePollData(user) {
     return false;
   }
 }
-function showSharePollOptions(pollId, question) {
+function showSharePollModal(pollId, question) {
   const pollUrl = `https://psephia.com/app.html?poll=${encodeURIComponent(pollId)}`;
   const shareText = `Vote on my Psephia poll: ${question}`;
 
-  const wantsToShare = confirm("Your poll has been created. Do you want to share it?");
+  const existingModal = document.getElementById("sharePollModal");
+  if (existingModal) existingModal.remove();
 
-  if (!wantsToShare) return;
+  const modal = document.createElement("div");
+  modal.id = "sharePollModal";
+  modal.className = "share-modal-backdrop";
 
-  const shareChoice = prompt("Type X to share on X, or F to share on Facebook:");
+  modal.innerHTML = `
+    <div class="share-modal">
+      <h2>Share your poll</h2>
+      <p>Your poll has been created. Share it with friends and followers.</p>
 
-  if (!shareChoice) return;
+      <button type="button" class="share-modal-btn x-share" id="shareToXBtn">𝕏 Share to X</button>
+      <button type="button" class="share-modal-btn facebook-share" id="shareToFacebookBtn">f Share to Facebook</button>
+      <button type="button" class="share-modal-cancel" id="shareCancelBtn">Do not share</button>
+    </div>
+  `;
 
-  if (shareChoice.toLowerCase() === "x") {
-    window.open(
-      `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(pollUrl)}`,
-      "_blank"
-    );
-  }
+  document.body.appendChild(modal);
 
-  if (shareChoice.toLowerCase() === "f") {
-    window.open(
-      `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(pollUrl)}`,
-      "_blank"
-    );
-  }
+  document.getElementById("shareToXBtn")?.addEventListener("click", () => {
+    window.location.href = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(pollUrl)}`;
+  });
+
+  document.getElementById("shareToFacebookBtn")?.addEventListener("click", () => {
+    window.location.href = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(pollUrl)}`;
+  });
+
+  document.getElementById("shareCancelBtn")?.addEventListener("click", () => {
+    modal.remove();
+  });
 }
 export function initPollEvents() {
   if (saveDetailsBtn) {
@@ -776,7 +786,7 @@ export function initPollEvents() {
         }
 
         const newPollRef = await addDoc(collection(db, "polls"), pollData);
-showSharePollOptions(newPollRef.id, question);
+        showSharePollModal(newPollRef.id, question);
         trackEvent("poll_created", {
           poll_id: newPollRef.id,
           category,

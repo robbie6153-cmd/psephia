@@ -743,3 +743,66 @@ select {
   margin-top: -5px;
   margin-bottom: 15px;
 }
+.share-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 20px;
+}
+
+.share-modal {
+  background: white;
+  width: 100%;
+  max-width: 420px;
+  border-radius: 22px;
+  padding: 28px;
+  text-align: center;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.25);
+}
+
+.share-modal h2 {
+  margin-top: 0;
+  margin-bottom: 12px;
+  font-size: 2rem;
+}
+
+.share-modal p {
+  margin-bottom: 24px;
+  color: #555;
+}
+
+.share-modal-btn,
+.share-modal-cancel {
+  width: 100%;
+  border: none;
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 14px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.share-modal-btn:hover,
+.share-modal-cancel:hover {
+  transform: scale(1.02);
+}
+
+.x-share {
+  background: black;
+  color: white;
+}
+
+.facebook-share {
+  background: #1877f2;
+  color: white;
+}
+
+.share-modal-cancel {
+  background: #eaeaea;
+  color: black;
+}
