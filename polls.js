@@ -378,12 +378,15 @@ export async function loadPolls() {
   try {
     if (!pollsLoadedOnce) {
       pollsDiv.innerHTML = "<p>Loading polls...</p>";
+console.time("loadPollsQuery");
 
-      const snap = await getDocs(query(
-        collection(db, "polls"),
-        orderBy("createdAt", "desc"),
-        limit(10)
-      ));
+const snap = await getDocs(query(
+  collection(db, "polls"),
+  orderBy("createdAt", "desc"),
+  limit(30)
+));
+
+console.timeEnd("loadPollsQuery");
 
       cachedPollDocs = snap.docs.map((docItem) => ({
         id: docItem.id,
