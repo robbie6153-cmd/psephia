@@ -666,7 +666,32 @@ export async function deleteProfilePollData(user) {
     return false;
   }
 }
+function showSharePollOptions(pollId, question) {
+  const pollUrl = `https://psephia.com/app.html?poll=${encodeURIComponent(pollId)}`;
+  const shareText = `Vote on my Psephia poll: ${question}`;
 
+  const wantsToShare = confirm("Your poll has been created. Do you want to share it?");
+
+  if (!wantsToShare) return;
+
+  const shareChoice = prompt("Type X to share on X, or F to share on Facebook:");
+
+  if (!shareChoice) return;
+
+  if (shareChoice.toLowerCase() === "x") {
+    window.open(
+      `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(pollUrl)}`,
+      "_blank"
+    );
+  }
+
+  if (shareChoice.toLowerCase() === "f") {
+    window.open(
+      `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(pollUrl)}`,
+      "_blank"
+    );
+  }
+}
 export function initPollEvents() {
   if (saveDetailsBtn) {
     saveDetailsBtn.addEventListener("click", saveUserDetails);
@@ -751,7 +776,7 @@ export function initPollEvents() {
         }
 
         const newPollRef = await addDoc(collection(db, "polls"), pollData);
-
+showSharePollOptions(newPollRef.id, question);
         trackEvent("poll_created", {
           poll_id: newPollRef.id,
           category,
