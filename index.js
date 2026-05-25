@@ -89,3 +89,32 @@ Thank you for using Psephia.
     }
   }
 );
+exports.deleteExpiredPolls = onSchedule(
+  {
+    schedule: "every 60 minutes"
+  },
+  async () => {
+    const now = admin.firestore.Timestamp.now();
+
+    const snapshot = await db
+      .collection("polls")
+      .where("deleteAfter", "<=", now)
+      .limit(50)
+      .get();
+
+    if (snapshot.empty) {
+      console.log("No expired polls to delete.");
+      return;
+    }
+
+    const batch = db.batch();
+
+    snapshot.docs.forEach((pollDoc) => {
+      batch.delete(pollDoc.ref);
+    });
+
+    await batch.commit();
+
+    console.log(`Deleted ${snapshot.size} expired polls.`);
+  }
+);
