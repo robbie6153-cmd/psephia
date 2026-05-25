@@ -382,7 +382,7 @@ export async function loadPolls() {
       const snap = await getDocs(query(
         collection(db, "polls"),
         orderBy("createdAt", "desc"),
-        limit(30)
+        limit(10)
       ));
 
       cachedPollDocs = snap.docs.map((docItem) => ({
