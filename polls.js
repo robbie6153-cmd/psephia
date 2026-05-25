@@ -682,6 +682,8 @@ function showSharePollModal(pollId, question) {
 
   modal.innerHTML = `
     <div class="share-modal">
+      <button type="button" class="share-modal-x" id="shareModalXBtn">×</button>
+
       <h2>Share your poll</h2>
       <p>Your poll has been created. Share it with friends and followers.</p>
 
@@ -693,16 +695,31 @@ function showSharePollModal(pollId, question) {
 
   document.body.appendChild(modal);
 
+  function closeShareModal() {
+    modal.remove();
+  }
+
+  modal.addEventListener("click", (event) => {
+    if (event.target === modal) {
+      closeShareModal();
+    }
+  });
+
+  document.getElementById("shareModalXBtn")?.addEventListener("click", closeShareModal);
+  document.getElementById("shareCancelBtn")?.addEventListener("click", closeShareModal);
+
   document.getElementById("shareToXBtn")?.addEventListener("click", () => {
-    window.location.href = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(pollUrl)}`;
+    window.open(
+      `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(pollUrl)}`,
+      "_blank"
+    );
   });
 
   document.getElementById("shareToFacebookBtn")?.addEventListener("click", () => {
-    window.location.href = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(pollUrl)}`;
-  });
-
-  document.getElementById("shareCancelBtn")?.addEventListener("click", () => {
-    modal.remove();
+    window.open(
+      `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(pollUrl)}`,
+      "_blank"
+    );
   });
 }
 export function initPollEvents() {

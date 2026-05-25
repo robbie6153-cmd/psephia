@@ -814,3 +814,25 @@ select {
   line-height: 1.5;
   color: #333;
 }
+.share-modal {
+  position: relative;
+}
+
+.share-modal-x {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 50%;
+  background: #222;
+  color: white;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.share-modal-x:hover {
+  opacity: 0.85;
+}
