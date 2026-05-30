@@ -734,11 +734,14 @@ if (submitPollBtn) {
         options,
         createdAt: Timestamp.fromDate(createdAt),
         closesAt: Timestamp.fromDate(closesAt),
-        createdBy: creatorData.username || "Anonymous",
-        createdByUid: user.uid,
-        votes: {},
-        userVotes: {},
-        votedBy: []
+       createdBy: creatorData.username || "Anonymous",
+createdByUid: user.uid,
+creatorEmail: user.email,
+notifyCreatorByEmail: true,
+resultsEmailSent: false,
+votes: {},
+userVotes: {},
+votedBy: []
       });
 
       if (pollQuestion) pollQuestion.value = "";
