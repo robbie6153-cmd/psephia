@@ -570,8 +570,6 @@ export async function voteOnPoll(pollId, option) {
   }
 }
 
-pollsLoadedOnce = true;
-await loadPolls();
 
 export async function loadMyPolls(user) {
   if (!user || !myPollsList) return;
