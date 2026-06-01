@@ -562,8 +562,22 @@ export async function voteOnPoll(pollId, option) {
 
     showVoteMessage("Your vote has been received.", false);
 
-    refreshPollCache();
-    await loadPolls();
+cachedPollDocs = cachedPollDocs.map((item) => {
+  if (item.id !== pollId) return item;
+
+  return {
+    ...item,
+    data: {
+      ...item.data,
+      votes,
+      userVotes,
+      votedBy
+    }
+  };
+});
+
+pollsLoadedOnce = true;
+await loadPolls();
   } catch (error) {
     console.error("Voting error:", error);
     showVoteMessage("There was a problem submitting your vote.", true);
