@@ -504,11 +504,10 @@ export async function voteOnPoll(pollId, option) {
     return;
   }
 
-  try {
-    await user.reload();
+try {
 
-    const pollRef = doc(db, "polls", pollId);
-    const pollSnap = await getDoc(pollRef);
+  const pollRef = doc(db, "polls", pollId);
+  const pollSnap = await getDoc(pollRef);
 
     if (!pollSnap.exists()) {
       showVoteMessage("Poll not found.", true);
@@ -559,14 +558,25 @@ export async function voteOnPoll(pollId, option) {
       option_count: currentOptions.length
     });
 
-    showVoteMessage("Your vote has been received.", false);
-    refreshPollCache();
-    await loadPolls();
-  } catch (error) {
-    console.error("Voting error:", error);
-    showVoteMessage("There was a problem submitting your vote.", true);
-  }
-}
+   showVoteMessage("Your vote has been received.", false);
+
+// Update the cached poll locally instead of forcing a slow full reload
+cachedPollDocs = cachedPollDocs.map((item) => {
+  if (item.id !== pollId) return item;
+
+  return {
+    ...item,
+    data: {
+      ...item.data,
+      votes,
+      userVotes,
+      votedBy
+    }
+  };
+});
+
+pollsLoadedOnce = true;
+await loadPolls();
 
 export async function loadMyPolls(user) {
   if (!user || !myPollsList) return;
