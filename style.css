@@ -836,3 +836,34 @@ select {
 .share-modal-x:hover {
   opacity: 0.85;
 }
+.poll-menu-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.poll-menu-dropdown {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 32px;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 6px;
+  z-index: 9999;
+  min-width: 130px;
+}
+
+.poll-menu-dropdown.show {
+  display: block;
+}
+
+.poll-menu-dropdown button {
+  display: block;
+  width: 100%;
+  background: none;
+  color: #111;
+  border: none;
+  padding: 8px;
+  text-align: left;
+}
