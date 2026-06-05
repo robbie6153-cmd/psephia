@@ -591,12 +591,11 @@ export async function loadMyPolls(user) {
   myPollsList.innerHTML = "";
 
   try {
-    const snap = await getDocs(query(
-      collection(db, "polls"),
-      where("createdByUid", "==", user.uid),
-      orderBy("createdAt", "desc"),
-      limit(20)
-    ));
+  const snap = await getDocs(query(
+  collection(db, "polls"),
+  where("createdByUid", "==", user.uid),
+  limit(20)
+));
 
     const myDocs = snap.docs
       .map((pollDoc) => ({ pollDoc, poll: pollDoc.data() }))
@@ -623,7 +622,8 @@ export async function loadMyPolls(user) {
           <div class="poll-menu-wrapper">
             <button class="poll-menu-btn" type="button" data-poll-menu="${pollId}">⋯</button>
             <div class="poll-menu-dropdown" id="pollMenu-${pollId}">
-              <button type="button" data-delete-poll="${pollId}">Delete poll</button>
+         <button type="button" data-edit-poll="${pollId}">Edit poll</button>
+<button type="button" data-delete-poll="${pollId}">Delete poll</button>
             </div>
           </div>
         </div>
@@ -638,7 +638,27 @@ export async function loadMyPolls(user) {
     myPollsList.innerHTML = "<p>Could not load your polls.</p>";
   }
 }
+function attachMyPollMenuEvents() {
+  document.querySelectorAll("[data-poll-menu]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const pollId = btn.dataset.pollMenu;
+      const menu = document.getElementById(`pollMenu-${pollId}`);
+      if (menu) menu.classList.toggle("show");
+    });
+  });
 
+  document.querySelectorAll("[data-edit-poll]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      alert("Edit poll coming next.");
+    });
+  });
+
+  document.querySelectorAll("[data-delete-poll]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      alert("Delete poll connected next.");
+    });
+  });
+}
 export async function deleteProfilePollData(user) {
   if (!user) return false;
 
