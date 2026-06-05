@@ -2,31 +2,21 @@
 const { onSchedule } = require("firebase-functions/v2/scheduler");
 const { defineSecret } = require("firebase-functions/params");
 const admin = require("firebase-admin");
-const nodemailer = require("nodemailer");
+const { Resend } = require("resend");
 
 admin.initializeApp();
 
 const db = admin.firestore();
 
-const emailUser = defineSecret("EMAIL_USER");
-const emailPass = defineSecret("EMAIL_PASS");
+const resendApiKey = defineSecret("RESEND_API_KEY");
 
 exports.sendPollResultEmails = onSchedule(
   {
     schedule: "every 15 minutes",
-    secrets: [emailUser, emailPass]
+    secrets: [resendApiKey]
   },
   async () => {
-    const transporter = nodemailer.createTransport({
-      host: "smtp-mail.outlook.com",
-      port: 587,
-      secure: false,
-      auth: {
-        user: emailUser.value(),
-        pass: emailPass.value()
-      }
-    });
-
+    const resend = new Resend(resendApiKey.value());
     const now = admin.firestore.Timestamp.now();
 
     const snapshot = await db
@@ -54,10 +44,21 @@ exports.sendPollResultEmails = onSchedule(
 
       let resultsText = "";
 
-      options.forEach((option) => {
-        const count = typeof votes[option] === "number" ? votes[option] : 0;
-        resultsText += `${option}: ${count} vote${count === 1 ? "" : "s"}\n`;
-      });
+   const totalVotes = Object.values(votes).reduce(
+  (sum, count) => sum + (typeof count === "number" ? count : 0),
+  0
+);
+
+options.forEach((option) => {
+  const count = typeof votes[option] === "number" ? votes[option] : 0;
+
+  const percentage =
+    totalVotes > 0
+      ? Math.round((count / totalVotes) * 100)
+      : 0;
+
+  resultsText += `${option}: ${percentage}%\n`;
+});
 
       const emailBody = `
 Your Psephia poll has ended.
@@ -74,12 +75,12 @@ https://psephia.com/app.html
 Thank you for using Psephia.
 `;
 
-      await transporter.sendMail({
-        from: '"Psephia" <robtechuk@hotmail.com>',
-        to: poll.creatorEmail,
-        subject: "Your Psephia poll results are ready",
-        text: emailBody
-      });
+      await resend.emails.send({
+  from: "Psephia <noreply@psephia.com>",
+  to: poll.creatorEmail,
+  subject: "Your Psephia poll results are ready",
+  text: emailBody
+});
 
       await pollDoc.ref.update({
         resultsEmailSent: true,
