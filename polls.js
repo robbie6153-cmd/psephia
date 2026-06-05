@@ -597,9 +597,8 @@ export async function loadMyPolls(user) {
   limit(20)
 ));
 
-    const myDocs = snap.docs
-      .map((pollDoc) => ({ pollDoc, poll: pollDoc.data() }))
-      .filter(({ poll }) => !hasPollEnded(poll));
+  const myDocs = snap.docs
+  .map((pollDoc) => ({ pollDoc, poll: pollDoc.data() }));
 
     if (myDocs.length === 0) {
       myPollsList.innerHTML = "<p>You have no active polls.</p>";
@@ -631,7 +630,7 @@ export async function loadMyPolls(user) {
 
       myPollsList.appendChild(pollEl);
     });
-
+console.log("Running attachMyPollMenuEvents");
     attachMyPollMenuEvents();
   } catch (error) {
     console.error("Load my polls error:", error);
@@ -639,24 +638,31 @@ export async function loadMyPolls(user) {
   }
 }
 function attachMyPollMenuEvents() {
+  console.log("Menu buttons found:", document.querySelectorAll("[data-poll-menu]").length);
   document.querySelectorAll("[data-poll-menu]").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const pollId = btn.dataset.pollMenu;
+    btn.onclick = () => {
+      const pollId = btn.getAttribute("data-poll-menu");
       const menu = document.getElementById(`pollMenu-${pollId}`);
-      if (menu) menu.classList.toggle("show");
-    });
+
+      if (!menu) {
+        alert("Menu not found");
+        return;
+      }
+
+      menu.classList.toggle("show");
+    };
   });
 
   document.querySelectorAll("[data-edit-poll]").forEach((btn) => {
-    btn.addEventListener("click", () => {
+    btn.onclick = () => {
       alert("Edit poll coming next.");
-    });
+    };
   });
 
   document.querySelectorAll("[data-delete-poll]").forEach((btn) => {
-    btn.addEventListener("click", () => {
+    btn.onclick = () => {
       alert("Delete poll connected next.");
-    });
+    };
   });
 }
 export async function deleteProfilePollData(user) {

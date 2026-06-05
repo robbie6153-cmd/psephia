@@ -56,7 +56,7 @@ import {
   loadMyPolls,
   deleteProfilePollData,
   initPollEvents
-} from "./polls.js";
+} from "./polls.js?v=32";
 
 // ===== EMAIL LINK SIGN-IN =====
 async function handleEmailLinkSignIn() {
